@@ -1,0 +1,91 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk{
+            abiFilters "arm64-v8a", "x86" , "armeabi-v7a", "x86_64"
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-frtti -fexceptions"
+            }
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+    ndkVersion '21.0.6113669'
+
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/libavcodec-58.so'
+        pickFirst 'lib/arm64-v8a/libavdevice-58.so'
+        pickFirst 'lib/arm64-v8a/libavfilter-7.so'
+        pickFirst 'lib/arm64-v8a/libavformat-58.so'
+        pickFirst 'lib/arm64-v8a/libavutil-56.so'
+        pickFirst 'lib/arm64-v8a/libpostproc-55.so'
+        pickFirst 'lib/arm64-v8a/libswresample-3.so'
+        pickFirst 'lib/arm64-v8a/libswscale-5.so'
+        pickFirst 'lib/arm64-v8a/libx264.so'
+
+        pickFirst 'lib/armeabi-v7a/libavcodec-58.so'
+        pickFirst 'lib/armeabi-v7a/libavdevice-58.so'
+        pickFirst 'lib/armeabi-v7a/libavfilter-7.so'
+        pickFirst 'lib/armeabi-v7a/libavformat-58.so'
+        pickFirst 'lib/armeabi-v7a/libavutil-56.so'
+        pickFirst 'lib/armeabi-v7a/libpostproc-55.so'
+        pickFirst 'lib/armeabi-v7a/libswresample-3.so'
+        pickFirst 'lib/armeabi-v7a/libswscale-5.so'
+        pickFirst 'lib/armeabi-v7a/libx264.so'
+
+        pickFirst 'lib/x86/libavcodec-58.so'
+        pickFirst 'lib/x86/libavdevice-58.so'
+        pickFirst 'lib/x86/libavfilter-7.so'
+        pickFirst 'lib/x86/libavformat-58.so'
+        pickFirst 'lib/x86/libavutil-56.so'
+        pickFirst 'lib/x86/libpostproc-55.so'
+        pickFirst 'lib/x86/libswresample-3.so'
+        pickFirst 'lib/x86/libswscale-5.so'
+        pickFirst 'lib/x86/libx264.so'
+
+        pickFirst 'lib/x86_64/libavcodec-58.so'
+        pickFirst 'lib/x86_64/libavdevice-58.so'
+        pickFirst 'lib/x86_64/libavfilter-7.so'
+        pickFirst 'lib/x86_64/libavformat-58.so'
+        pickFirst 'lib/x86_64/libavutil-56.so'
+        pickFirst 'lib/x86_64/libpostproc-55.so'
+        pickFirst 'lib/x86_64/libswresample-3.so'
+        pickFirst 'lib/x86_64/libswscale-5.so'
+        pickFirst 'lib/x86_64/libx264.so'
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+}

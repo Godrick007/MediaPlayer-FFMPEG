@@ -1,0 +1,3 @@
+include ':medialib'
+include ':app'
+rootProject.name = "MediaPlayer-ffmpeg"
