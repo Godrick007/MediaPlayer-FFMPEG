@@ -52,7 +52,7 @@ void Callback2Java::cb2j_JNI_OnLoadFailed(CallbackThread thread) {
     if (thread == MAIN_THREAD) {
         this->env->CallVoidMethod(this->jobj, mid_OnJNILoadFailed);
     } else {
-        JNIEnv *env = NULL;
+        JNIEnv *env = nullptr;
         if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
             if (LOG_DEBUG) {
                 LOGD("MediaPlayer", "Get thread jniEnv error");

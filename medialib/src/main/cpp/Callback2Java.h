@@ -6,7 +6,7 @@
 #define MEDIAPLAYER_FFMPEG_CALLBACK2JAVA_H
 
 #include <jni.h>
-#include "LogUtil.h"
+#include "util/LogUtil.h"
 
 enum CallbackThread {
     MAIN_THREAD,

@@ -1,5 +1,7 @@
 package godrick.media.medialib.natives;
 
+import android.view.Surface;
+
 public class NativeMediaEnter {
 
     static {
@@ -30,6 +32,10 @@ public class NativeMediaEnter {
 
     //======================java methods =====================
 
+    public void setSurface(Surface surface) {
+        nSetSurface(surface);
+    }
+
     public void prepare(String url) {
         nPrepare(url);
     }
@@ -40,8 +46,9 @@ public class NativeMediaEnter {
     //======================ndk methods ======================
 
 
-    private native void nPrepare(String url);
+    private native void nSetSurface(Surface surface);
 
+    private native void nPrepare(String url);
 
     //======================ndk methods end ==================
 

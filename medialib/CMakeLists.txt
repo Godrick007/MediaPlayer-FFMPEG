@@ -35,8 +35,12 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         src/main/cpp/MediaEnter.cpp
-        src/main/cpp/LogUtil.cpp
+        src/main/cpp/util/LogUtil.cpp
         src/main/cpp/Callback2Java.cpp
+        src/main/cpp/decode/MediaPlayer.cpp
+        src/main/cpp/decode/PlayState.cpp
+        src/main/cpp/decode/Queue.cpp
+
         )
 
 # Searches for a specified prebuilt library and stores the path as a
