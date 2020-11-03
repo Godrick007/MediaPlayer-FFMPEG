@@ -21,7 +21,9 @@ class Callback2Java {
 public:
     jmethodID mid_OnJNILoadFailed;
     jmethodID mid_JniMethodRegisterError;
-
+    jmethodID mid_MediaPlayerInitError;
+    jmethodID mid_MediaPlayerPrepared;
+    jmethodID mid_MediaPlayerComplete;
     /**
      * members
      */
@@ -51,6 +53,11 @@ public:
      */
 public:
 
+    void cb2j_MediaPlayer_InitError(CallbackThread thread, int errorCode, const char *msg);
+
+    void cb2j_MediaPlayer_Prepared(CallbackThread thread);
+
+    void cb2j_MediaPlayer_Complete(CallbackThread thread);
 };
 
 

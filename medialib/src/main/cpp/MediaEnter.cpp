@@ -36,7 +36,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
 
 void _prepare(JNIEnv *env, jobject instance, jstring url) {
-    const char *_url = env->GetStringUTFChars(url, 0);
+    const char *_url = env->GetStringUTFChars(url, nullptr);
     LOGE("MediaPlayer", "test for register method %s", _url);
 
 

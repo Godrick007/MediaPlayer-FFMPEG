@@ -21,7 +21,10 @@ Callback2Java::Callback2Java(JavaVM *jvm, JNIEnv *env, jobject jobj) {
 
     mid_OnJNILoadFailed = env->GetMethodID(clz, "cb_OnJniLoadFailed", "()V");
     mid_JniMethodRegisterError = env->GetMethodID(clz, "cb_JniMethodRegisterError", "()V");
-
+    mid_MediaPlayerInitError = env->GetMethodID(clz, "cb_MediaPlayerInitError",
+                                                "(ILjava/lang/String;)V");
+    mid_MediaPlayerPrepared = env->GetMethodID(clz, "cb_MediaPlayerPrepared", "()V");
+    mid_MediaPlayerComplete = env->GetMethodID(clz, "cb_MediaPlayerComplete", "()V");
 }
 
 Callback2Java::~Callback2Java() = default;
@@ -79,3 +82,58 @@ void Callback2Java::cb2j_JNI_MethodFailed(CallbackThread thread) {
         jvm->DetachCurrentThread();
     }
 }
+
+void
+Callback2Java::cb2j_MediaPlayer_InitError(CallbackThread thread, int errorCode, const char *msg) {
+    jstring str = this->env->NewStringUTF(msg);
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(this->jobj, mid_MediaPlayerInitError, errorCode, str);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "Player init error code = %d, msg = %s", errorCode, msg);
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerInitError, errorCode, str);
+        jvm->DetachCurrentThread();
+    }
+    env->ReleaseStringUTFChars(str, msg);
+}
+
+void Callback2Java::cb2j_MediaPlayer_Prepared(CallbackThread thread) {
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaPlayerPrepared);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "media prepared");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerPrepared);
+        jvm->DetachCurrentThread();
+    }
+
+}
+
+void Callback2Java::cb2j_MediaPlayer_Complete(CallbackThread thread) {
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaPlayerComplete);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "media complete");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerComplete);
+        jvm->DetachCurrentThread();
+    }
+
+}
+
+

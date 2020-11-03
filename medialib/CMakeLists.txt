@@ -40,8 +40,34 @@ add_library( # Sets the name of the library.
         src/main/cpp/decode/MediaPlayer.cpp
         src/main/cpp/decode/PlayState.cpp
         src/main/cpp/decode/Queue.cpp
+        src/main/cpp/decode/Audio.cpp
+        src/main/cpp/decode/Video.cpp
 
         )
+
+
+add_library(
+        soundtouch
+
+        SHARED
+
+        src/main/cpp/soundtouch/AAFilter.cpp
+        src/main/cpp/soundtouch/BPMDetect.cpp
+        src/main/cpp/soundtouch/cpu_detect_x86.cpp
+        src/main/cpp/soundtouch/FIFOSampleBuffer.cpp
+        src/main/cpp/soundtouch/FIRFilter.cpp
+        src/main/cpp/soundtouch/InterpolateCubic.cpp
+        src/main/cpp/soundtouch/InterpolateLinear.cpp
+        src/main/cpp/soundtouch/InterpolateShannon.cpp
+        src/main/cpp/soundtouch/mmx_optimized.cpp
+        src/main/cpp/soundtouch/PeakFinder.cpp
+        src/main/cpp/soundtouch/RateTransposer.cpp
+        src/main/cpp/soundtouch/SoundTouch.cpp
+        src/main/cpp/soundtouch/sse_optimized.cpp
+        src/main/cpp/soundtouch/TDStretch.cpp
+
+)
+
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -118,6 +144,7 @@ set_target_properties(x264
 
 target_link_libraries( # Specifies the target library.
         MediaPlayer-FFMPEG
+        soundtouch
 
         OpenSLES
         avcodec-58
