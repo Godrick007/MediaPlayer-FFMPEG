@@ -9,6 +9,7 @@
 #include "PlayState.h"
 #include "../Callback2Java.h"
 #include "Queue.h"
+#include "SLProcessor.h"
 #include <pthread.h>
 
 extern "C" {
@@ -32,7 +33,11 @@ public:
     AVFrame *pAVFrame = nullptr;
     AVRational timeBase;
 
-    pthread_t threadPlay;
+    SLProcessor *pSLProcessor = nullptr;
+
+    pthread_t *pThreadDecode = nullptr;
+
+    pthread_mutex_t mutexDecode;
 
 
 public:

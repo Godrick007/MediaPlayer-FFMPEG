@@ -42,6 +42,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/decode/Queue.cpp
         src/main/cpp/decode/Audio.cpp
         src/main/cpp/decode/Video.cpp
+        src/main/cpp/decode/SLProcessor.cpp
 
         )
 
