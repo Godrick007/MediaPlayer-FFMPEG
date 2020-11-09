@@ -14,6 +14,7 @@
 
 extern "C" {
 #include "../include/libavcodec/avcodec.h"
+#include "../include/libavutil/time.h"
 };
 
 class Audio {
@@ -39,11 +40,14 @@ public:
 
     pthread_mutex_t mutexDecode;
 
+    int ret;
 
 public:
     Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j);
 
     ~Audio();
+
+    int resampleAudio(void **pcmBuffer);
 
 public:
     void play();

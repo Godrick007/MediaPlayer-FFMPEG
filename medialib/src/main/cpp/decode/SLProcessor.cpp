@@ -5,6 +5,25 @@
 
 #include "SLProcessor.h"
 
+void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
+
+    SLProcessor *instance = static_cast<SLProcessor *>(context);
+
+    if (instance) {
+
+        int bufferSize = instance->getSoundTouchData();
+        if (bufferSize > 0) {
+
+
+
+
+        }
+
+    }
+
+
+}
+
 SLProcessor::SLProcessor(int sampleRate) {
     this->sampleRate = sampleRate;
     this->pSampleBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
@@ -64,7 +83,7 @@ void SLProcessor::initialize() {
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
             2,
-            static_cast<SLuint32>(getCurrentSampleRateForOpenSL(this->sampleRate)),
+            getCurrentSampleRateForOpenSL(this->sampleRate),
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
@@ -115,13 +134,19 @@ void SLProcessor::initialize() {
     result = (*this->pcmPlayerObject)->GetInterface(this->pcmPlayerObject, SL_IID_BUFFERQUEUE,
                                                     &this->pcmBufferQueue);
 
+    result = (*this->pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
 
+
+    result = (*this->pcmPlayerPlayer)->SetPlayState(pcmPlayerPlayer, SL_PLAYSTATE_PLAYING);
+
+
+    pcmBufferCallback(pcmBufferQueue, this);
 
 }
 
 
-int SLProcessor::getCurrentSampleRateForOpenSL(int sampleRate) {
-    int rate = 0;
+SLuint32 SLProcessor::getCurrentSampleRateForOpenSL(int sampleRate) {
+    SLuint32 rate = 0;
 
     switch (sampleRate) {
 
@@ -166,4 +191,31 @@ int SLProcessor::getCurrentSampleRateForOpenSL(int sampleRate) {
     }
 
     return rate;
+}
+
+int SLProcessor::getSoundTouchData() {
+    return 0;
+}
+
+int SLProcessor::getPCMDB(char *pcmCate, size_t pcmSize) {
+
+    int db = 0;
+
+    short int prevalue = 0;
+
+    double sum = 0;
+
+    for (int i = 0; i < pcmSize; i++) {
+
+        memcpy(&prevalue, pcmCate + i, 2);
+        sum += abs(prevalue);
+    }
+
+    sum /= (pcmSize / 2);
+
+    if (sum > 0) {
+        db = 20 * log10(sum);
+    }
+
+    return db;
 }

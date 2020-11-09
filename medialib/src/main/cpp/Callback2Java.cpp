@@ -25,6 +25,7 @@ Callback2Java::Callback2Java(JavaVM *jvm, JNIEnv *env, jobject jobj) {
                                                 "(ILjava/lang/String;)V");
     mid_MediaPlayerPrepared = env->GetMethodID(clz, "cb_MediaPlayerPrepared", "()V");
     mid_MediaPlayerComplete = env->GetMethodID(clz, "cb_MediaPlayerComplete", "()V");
+    mid_MediaPlayerLoading = env->GetMethodID(clz, "cb_MediaPlayerLoading", "(Z)V");
 }
 
 Callback2Java::~Callback2Java() = default;
@@ -134,6 +135,22 @@ void Callback2Java::cb2j_MediaPlayer_Complete(CallbackThread thread) {
         jvm->DetachCurrentThread();
     }
 
+}
+
+void Callback2Java::cb2j_MediaPlayer_Loading(CallbackThread thread, bool loading) {
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaPlayerLoading, loading);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "media loading");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerLoading, loading);
+        jvm->DetachCurrentThread();
+    }
 }
 
 

@@ -9,6 +9,7 @@
 #include <SLES/OpenSLES_Android.h>
 #include "../soundtouch/SoundTouch.h"
 #include "../Callback2Java.h"
+#include "Audio.h"
 
 //extern "C"
 //{
@@ -20,6 +21,8 @@ using namespace soundtouch;
 class SLProcessor {
 
 public:
+
+    Audio *audio = nullptr;
 
     //engine
     SLObjectItf engineObject = nullptr;
@@ -41,12 +44,17 @@ public:
 
     SAMPLETYPE *pSampleBuffer = nullptr;
 
+
     float speed = 1.0f;
     float pitch = 1.0f;
 
     int sampleRate = 0;
 
     int channel = 0;
+
+    long clock = 0;
+    long duration = 0;
+
 
 public:
 
@@ -56,8 +64,14 @@ public:
 
     void initialize();
 
+    SLuint32 getCurrentSampleRateForOpenSL(int sampleRate);
 
-    int getCurrentSampleRateForOpenSL(int sampleRate);
+//    void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context);
+
+    int getSoundTouchData();
+
+    int getPCMDB(char *pcmCate, size_t pcmSize);
+
 };
 
 

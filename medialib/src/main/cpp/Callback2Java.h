@@ -24,6 +24,8 @@ public:
     jmethodID mid_MediaPlayerInitError;
     jmethodID mid_MediaPlayerPrepared;
     jmethodID mid_MediaPlayerComplete;
+    jmethodID mid_MediaPlayerLoading;
+
     /**
      * members
      */
@@ -58,6 +60,8 @@ public:
     void cb2j_MediaPlayer_Prepared(CallbackThread thread);
 
     void cb2j_MediaPlayer_Complete(CallbackThread thread);
+
+    void cb2j_MediaPlayer_Loading(CallbackThread thread, bool loading);
 };
 
 
