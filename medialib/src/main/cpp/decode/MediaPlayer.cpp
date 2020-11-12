@@ -4,13 +4,14 @@
 
 #include "MediaPlayer.h"
 
+
 MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url) {
     this->playState = playState;
     this->cb2j = cb2j;
     this->url = url;
     pthread_mutex_init(&mutexInit, nullptr);
     pthread_mutex_init(&mutexSeek, nullptr);
-
+    prepare();
 }
 
 MediaPlayer::~MediaPlayer() {
@@ -146,14 +147,17 @@ void MediaPlayer::initialized() {
 
     pthread_mutex_lock(&this->mutexInit);
 
-    //av_register_all();
+//    av_register_all();
     avformat_network_init();
 
-    if (avformat_open_input(&this->pAVFormatContext, this->url, nullptr, nullptr) != 0) {
+    ret = avformat_open_input(&this->pAVFormatContext, this->url, nullptr, nullptr);
+
+    if (ret != 0) {
         if (LOG_DEBUG) {
-            LOGE("MediaPlayer", "FFMPEG can't open url : %s\n", this->url);
+            LOGE("MediaPlayer", "FFMPEG can't open url : %s  errorCode is %d -- %s\n", this->url,
+                 ret, av_err2str(ret));
         }
-        cb2j->cb2j_MediaPlayer_InitError(WORK_THREAD, 1, "Url error");
+        cb2j->cb2j_MediaPlayer_InitError(WORK_THREAD, ret, av_err2str(ret));
         exit = true;
         pthread_mutex_unlock(&this->mutexInit);
         return;
@@ -162,6 +166,9 @@ void MediaPlayer::initialized() {
     if (avformat_find_stream_info(pAVFormatContext, nullptr) < 0) {
         if (LOG_DEBUG) {
             LOGE("MediaPlayer", "FFMPEG can't find stream info : %s\n", this->url);
+            //LOGE("MediaPlayer",);
+
+            av_dump_format(pAVFormatContext, 0, this->url, 0);
         }
         cb2j->cb2j_MediaPlayer_InitError(WORK_THREAD, 2, "can't find stream info");
         exit = true;
@@ -229,14 +236,17 @@ void MediaPlayer::initialized() {
 }
 
 void MediaPlayer::startPlay() {
-    if (!this->audio) {
+
+
+
+    if (this->audio == nullptr) {
         if (LOG_DEBUG) {
             LOGD("MediaPlayer", "audio is null");
             return;
         }
     }
 
-    if (this->video) {
+    if (this->video == nullptr) {
         if (LOG_DEBUG) {
             LOGD("MediaPlayer", "audio is null");
             return;
@@ -265,7 +275,7 @@ void MediaPlayer::startPlay() {
 
         pthread_mutex_lock(&mutexSeek);
 
-        int ret = av_read_frame(this->pAVFormatContext, pkt);
+        ret = av_read_frame(this->pAVFormatContext, pkt);
 
         pthread_mutex_unlock(&mutexSeek);
 
@@ -305,3 +315,6 @@ void MediaPlayer::startPlay() {
         this->cb2j->cb2j_MediaPlayer_Complete(WORK_THREAD);
     }
 }
+
+
+

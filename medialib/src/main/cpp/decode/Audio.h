@@ -10,12 +10,18 @@
 #include "../Callback2Java.h"
 #include "Queue.h"
 #include "SLProcessor.h"
+#include "../soundtouch/SoundTouch.h"
 #include <pthread.h>
 
 extern "C" {
 #include "../include/libavcodec/avcodec.h"
 #include "../include/libavutil/time.h"
+#include "../include/libswresample/swresample.h"
 };
+
+using namespace soundtouch;
+
+class SLProcessor;
 
 class Audio {
 
@@ -27,6 +33,11 @@ public:
     int streamIndex = 0;
     int duration = 0;
 
+    SoundTouch *pSoundTouch = nullptr;
+    float speed = 1.0f;
+    float pitch = 1.0f;
+
+
     Queue *queue = nullptr;
     AVCodecParameters *pAVCodecParameters = nullptr;
     AVCodecContext *pAVCodecContext = nullptr;
@@ -36,11 +47,22 @@ public:
 
     SLProcessor *pSLProcessor = nullptr;
 
-    pthread_t *pThreadDecode = nullptr;
+    pthread_t threadDecode;
 
     pthread_mutex_t mutexDecode;
 
     int ret;
+    int nb;
+    long dataSize;
+    uint8_t *buffer = nullptr;
+    int num;
+
+    bool finish = false;
+
+
+    double nowTime;
+    double clock;
+    long lastTime;
 
 public:
     Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j);
@@ -48,6 +70,8 @@ public:
     ~Audio();
 
     int resampleAudio(void **pcmBuffer);
+
+    int getSoundTouchData(SAMPLETYPE **sampleBuffer);
 
 public:
     void play();

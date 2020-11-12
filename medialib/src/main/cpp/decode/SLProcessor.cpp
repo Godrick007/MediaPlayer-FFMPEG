@@ -9,14 +9,24 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
 
     SLProcessor *instance = static_cast<SLProcessor *>(context);
 
-    if (instance) {
+    if (instance != nullptr) {
 
-        int bufferSize = instance->getSoundTouchData();
+        int bufferSize = instance->audio->getSoundTouchData(&instance->pSampleBuffer);
         if (bufferSize > 0) {
+            instance->audio->clock += bufferSize / ((double) instance->audio->sampleRate * 2 * 2);
+            if (instance->audio->clock - instance->audio->lastTime >= 0.1) {
+                instance->audio->lastTime = instance->audio->clock;
+                instance->audio->cb2j->cb2j_MediaPlayer_Progress(WORK_THREAD,
+                                                                 instance->audio->clock,
+                                                                 instance->audio->duration);
+            }
 
-
-
-
+            instance->audio->cb2j->cb2j_MediaPlayer_DBValue(WORK_THREAD,
+                                                            instance->getPCMDB(
+                                                                    reinterpret_cast<char *>(instance->pSampleBuffer),
+                                                                    bufferSize * 4));
+            (*instance->pcmBufferQueue)->Enqueue(instance->pcmBufferQueue, instance->pSampleBuffer,
+                                                 bufferSize * 2 * 2);
         }
 
     }
@@ -24,14 +34,11 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
 
 }
 
-SLProcessor::SLProcessor(int sampleRate) {
+SLProcessor::SLProcessor(int sampleRate, Audio *audio) {
     this->sampleRate = sampleRate;
+    this->audio = audio;
     this->pSampleBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
-    this->pSoundTouch = new SoundTouch();
-    this->pSoundTouch->setSampleRate(sampleRate);
-    this->pSoundTouch->setChannels(2);
-    this->pSoundTouch->setPitch(this->pitch);
-    this->pSoundTouch->setTempo(this->speed);
+
 }
 
 SLProcessor::~SLProcessor() {
@@ -44,16 +51,37 @@ void SLProcessor::initialize() {
 
     //engine
     result = slCreateEngine(&this->engineObject, 0, nullptr, 0, nullptr, nullptr);
-    if (LOG_DEBUG) {
-        LOGE("MediaPlayer", "SL Engine create is %d", result == SL_RESULT_SUCCESS);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL slCreateEngine %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
     }
     (void) result;
 
     result = (*this->engineObject)->Realize(this->engineObject, SL_BOOLEAN_FALSE);
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL Engine Realize is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->engineObject)->GetInterface(this->engineObject, SL_IID_ENGINE,
                                                  &this->engineEngine);
-
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL Engine GetInterface is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
     //mix
     const SLInterfaceID mixIds[1] = {SL_IID_ENVIRONMENTALREVERB};
@@ -62,15 +90,50 @@ void SLProcessor::initialize() {
     result = (*this->engineEngine)->CreateOutputMix(this->engineEngine, &this->outputMixObject, 1,
                                                     mixIds,
                                                     mixReq);
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL Engine CreateOutputMix is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
     result = (*this->outputMixObject)->Realize(this->outputMixObject, SL_BOOLEAN_FALSE);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL outputMixObject Realize is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
     result = (*this->outputMixObject)->GetInterface(this->outputMixObject,
                                                     SL_IID_ENVIRONMENTALREVERB,
                                                     &this->outputMixEnvironmentReverb);
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL outputMixObject GetInterface is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->outputMixEnvironmentReverb)->SetEnvironmentalReverbProperties(
             this->outputMixEnvironmentReverb, &this->reverbSettings);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL outputMixEnvironmentReverb SetEnvironmentalReverbProperties is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
 
     SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, this->outputMixObject};
@@ -78,7 +141,7 @@ void SLProcessor::initialize() {
 
     //data source
 
-    SLDataLocator_AndroidBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDBUFFERQUEUE, 2};
+    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
 
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
@@ -119,26 +182,98 @@ void SLProcessor::initialize() {
             playerReq
     );
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL Engine CreateAudioPlayer is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->pcmPlayerObject)->Realize(this->pcmPlayerObject, SL_BOOLEAN_FALSE);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL Engine Realize is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
 
     result = (*this->pcmPlayerObject)->GetInterface(this->pcmPlayerObject, SL_IID_PLAY,
                                                     &this->pcmPlayerPlayer);
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmPlayerObject GetInterface  pcmPlayerPlayer is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->pcmPlayerObject)->GetInterface(this->pcmPlayerObject, SL_IID_VOLUME,
                                                     &this->pcmPlayerVolume);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmPlayerObject GetInterface  pcmPlayerVolume is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
     result = (*this->pcmPlayerObject)->GetInterface(this->pcmPlayerObject, SL_IID_MUTESOLO,
                                                     &this->pcmPlayerMute);
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmPlayerObject GetInterface  pcmPlayerMute is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->pcmPlayerObject)->GetInterface(this->pcmPlayerObject, SL_IID_BUFFERQUEUE,
                                                     &this->pcmBufferQueue);
 
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmPlayerObject GetInterface  pcmBufferQueue is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
+
     result = (*this->pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmBufferQueue RegisterCallback is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
 
     result = (*this->pcmPlayerPlayer)->SetPlayState(pcmPlayerPlayer, SL_PLAYSTATE_PLAYING);
 
+
+    if (result != SL_RESULT_SUCCESS) {
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "SL pcmPlayerPlayer SetPlayState is %d", result);
+        }
+        this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
+        return;
+    }
+    (void) result;
 
     pcmBufferCallback(pcmBufferQueue, this);
 
@@ -193,9 +328,6 @@ SLuint32 SLProcessor::getCurrentSampleRateForOpenSL(int sampleRate) {
     return rate;
 }
 
-int SLProcessor::getSoundTouchData() {
-    return 0;
-}
 
 int SLProcessor::getPCMDB(char *pcmCate, size_t pcmSize) {
 

@@ -16,6 +16,7 @@
 extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/time.h"
+#include "libavutil/error.h"
 };
 
 class MediaPlayer {
@@ -41,6 +42,7 @@ public:
 
     pthread_t threadPlay;
 
+    int ret;
 
 public:
     MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url);

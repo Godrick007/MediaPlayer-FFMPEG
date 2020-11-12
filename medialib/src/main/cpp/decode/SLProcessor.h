@@ -11,12 +11,10 @@
 #include "../Callback2Java.h"
 #include "Audio.h"
 
-//extern "C"
-//{
-//#include <libavutil/mem.h>
-//};
 
 using namespace soundtouch;
+
+class Audio;
 
 class SLProcessor {
 
@@ -34,7 +32,7 @@ public:
     SLEnvironmentalReverbSettings reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
 
     //pcm
-    SoundTouch *pSoundTouch;
+
     SLObjectItf pcmPlayerObject = nullptr;
     SLPlayItf pcmPlayerPlayer = nullptr;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = nullptr;
@@ -45,20 +43,17 @@ public:
     SAMPLETYPE *pSampleBuffer = nullptr;
 
 
-    float speed = 1.0f;
-    float pitch = 1.0f;
-
     int sampleRate = 0;
 
     int channel = 0;
 
-    long clock = 0;
+
     long duration = 0;
 
 
 public:
 
-    SLProcessor(int sampleRate);
+    SLProcessor(int sampleRate, Audio *audio);
 
     ~SLProcessor();
 
@@ -66,9 +61,7 @@ public:
 
     SLuint32 getCurrentSampleRateForOpenSL(int sampleRate);
 
-//    void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context);
-
-    int getSoundTouchData();
+   //void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context);
 
     int getPCMDB(char *pcmCate, size_t pcmSize);
 

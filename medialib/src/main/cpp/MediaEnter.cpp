@@ -1,16 +1,42 @@
 #include "jni.h"
 #include "util/LogUtil.h"
 #include "Callback2Java.h"
+#include "decode/MediaPlayer.h"
+#include "decode/PlayState.h"
 
-Callback2Java *cb2j = nullptr;
-JavaVM *javaVM;
+JavaVM *javaVM = nullptr;
+Callback2Java *pCb2j = nullptr;
+PlayState *pPlayState = nullptr;
+MediaPlayer *pMediaPlayer = nullptr;
 
-void _prepare(JNIEnv *env, jobject instance, jstring url);
 void _setSurface(JNIEnv *env, jobject instance, jobject surface);
 
+void _prepare(JNIEnv *env, jobject instance, jstring url);
+
+void _start(JNIEnv *env, jobject instance);
+
+void _pause(JNIEnv *env, jobject instance);
+
+void _resume(JNIEnv *env, jobject instance);
+
+void _stop(JNIEnv *env, jobject instance);
+
+void _release(JNIEnv *env, jobject instance);
+
+void _setSpeed(JNIEnv *env, jobject instance, jfloat speed);
+
 static const JNINativeMethod methods[] = {
-        {"nPrepare", "(Ljava/lang/String;)V", (void *) _prepare},
-        {"nSetSurface", "(Landroid/view/Surface;)V", (void *) _setSurface}
+        //renderer
+        {"nSetSurface",   "(Landroid/view/Surface;)V", (void *) _setSurface},
+
+        //media player controller
+        {"nPrepare",      "(Ljava/lang/String;)V",     (void *) _prepare},
+        {"nStart",        "()V",                       (void *) _start},
+        {"nPause",        "()V",                       (void *) _pause},
+        {"nResume",       "()V",                       (void *) _resume},
+        {"nStop",         "()V",                       (void *) _stop},
+        {"nRelease",      "()V",                       (void *) _release},
+        {"nSetPlaySpeed", "(F)V",                      (void *) _setSpeed},
 };
 
 
@@ -35,20 +61,68 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 }
 
 
+void _setSurface(JNIEnv *env, jobject instance, jobject surface) {
+
+}
+
 void _prepare(JNIEnv *env, jobject instance, jstring url) {
     const char *_url = env->GetStringUTFChars(url, nullptr);
-    LOGE("MediaPlayer", "test for register method %s", _url);
+    LOGE("MediaPlayer", "Open media file %s", _url);
+
+    if (!pCb2j) {
+        pCb2j = new Callback2Java(javaVM, env, instance);
+    }
+
+    if (!pPlayState) {
+        pPlayState = new PlayState();
+    }
+
+    if (!pMediaPlayer) {
+        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url);
+    }
 
 
-
-
-
-    env->ReleaseStringUTFChars(url, _url);
+//    env->ReleaseStringUTFChars(url, _url);
 }
 
-void _setSurface(JNIEnv *env, jobject instance, jobject surface){
+void _start(JNIEnv *env, jobject instance) {
+
+    if (pMediaPlayer) {
+        pMediaPlayer->play();
+    }
 
 }
+
+void _pause(JNIEnv *env, jobject instance) {
+    if (pMediaPlayer) {
+        pMediaPlayer->pause();
+    }
+}
+
+void _resume(JNIEnv *env, jobject instance) {
+    if (pMediaPlayer) {
+        pMediaPlayer->resume();
+    }
+}
+
+void _stop(JNIEnv *env, jobject instance) {
+    if (pMediaPlayer) {
+        pMediaPlayer->stop();
+    }
+}
+
+void _release(JNIEnv *env, jobject instance) {
+    if (pMediaPlayer) {
+        pMediaPlayer->release();
+    }
+}
+
+void _setSpeed(JNIEnv *env, jobject instance, jfloat speed) {
+    if (pMediaPlayer) {
+        pMediaPlayer->setSpeed(speed);
+    }
+}
+
 
 
 

@@ -25,7 +25,9 @@ public:
     jmethodID mid_MediaPlayerPrepared;
     jmethodID mid_MediaPlayerComplete;
     jmethodID mid_MediaPlayerLoading;
-
+    jmethodID mid_MediaPlayerProgress;
+    jmethodID mid_MediaPlayerDBValue;
+    jmethodID mid_MediaPlayerSLInitError;
     /**
      * members
      */
@@ -62,6 +64,13 @@ public:
     void cb2j_MediaPlayer_Complete(CallbackThread thread);
 
     void cb2j_MediaPlayer_Loading(CallbackThread thread, bool loading);
+
+    void cb2j_MediaPlayer_Progress(CallbackThread thread, long current, long duration);
+
+    void cb2j_MediaPlayer_DBValue(CallbackThread thread, double dbValue);
+
+    void cb2j_MediaPlayer_SL_InitError(CallbackThread thread, int errorCode, const char *msg);
+
 };
 
 

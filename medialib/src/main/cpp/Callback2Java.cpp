@@ -26,6 +26,10 @@ Callback2Java::Callback2Java(JavaVM *jvm, JNIEnv *env, jobject jobj) {
     mid_MediaPlayerPrepared = env->GetMethodID(clz, "cb_MediaPlayerPrepared", "()V");
     mid_MediaPlayerComplete = env->GetMethodID(clz, "cb_MediaPlayerComplete", "()V");
     mid_MediaPlayerLoading = env->GetMethodID(clz, "cb_MediaPlayerLoading", "(Z)V");
+    mid_MediaPlayerLoading = env->GetMethodID(clz, "cb_MediaPlayerProgress", "(JJ)V");
+    mid_MediaPlayerDBValue = env->GetMethodID(clz, "cb_MediaPlayerDBValue", "(D)V");
+    mid_MediaPlayerSLInitError = env->GetMethodID(clz, "cb_MediaPlayerSLInitError",
+                                                  "(ILjava/lang/String;)V");
 }
 
 Callback2Java::~Callback2Java() = default;
@@ -86,9 +90,11 @@ void Callback2Java::cb2j_JNI_MethodFailed(CallbackThread thread) {
 
 void
 Callback2Java::cb2j_MediaPlayer_InitError(CallbackThread thread, int errorCode, const char *msg) {
-    jstring str = this->env->NewStringUTF(msg);
+    jstring str = nullptr;
     if (thread == MAIN_THREAD) {
+        str = this->env->NewStringUTF(msg);
         this->env->CallVoidMethod(this->jobj, mid_MediaPlayerInitError, errorCode, str);
+        env->ReleaseStringUTFChars(str, msg);
     } else {
         JNIEnv *env;
         if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
@@ -97,10 +103,12 @@ Callback2Java::cb2j_MediaPlayer_InitError(CallbackThread thread, int errorCode, 
             }
             return;
         }
+        str = env->NewStringUTF(msg);
         env->CallVoidMethod(this->jobj, mid_MediaPlayerInitError, errorCode, str);
+        env->DeleteLocalRef(str);
         jvm->DetachCurrentThread();
     }
-    env->ReleaseStringUTFChars(str, msg);
+
 }
 
 void Callback2Java::cb2j_MediaPlayer_Prepared(CallbackThread thread) {
@@ -149,6 +157,61 @@ void Callback2Java::cb2j_MediaPlayer_Loading(CallbackThread thread, bool loading
             return;
         }
         env->CallVoidMethod(this->jobj, mid_MediaPlayerLoading, loading);
+        jvm->DetachCurrentThread();
+    }
+}
+
+void Callback2Java::cb2j_MediaPlayer_Progress(CallbackThread thread, long current, long duration) {
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaPlayerProgress, current, duration);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                //LOGD("MediaPlayer", "media loading");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerProgress, current, duration);
+        jvm->DetachCurrentThread();
+    }
+}
+
+void Callback2Java::cb2j_MediaPlayer_DBValue(CallbackThread thread, double dbValue) {
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaPlayerDBValue, dbValue);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                //LOGD("MediaPlayer", "media loading");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerDBValue, dbValue);
+        jvm->DetachCurrentThread();
+    }
+}
+
+void
+Callback2Java::cb2j_MediaPlayer_SL_InitError(CallbackThread thread, int errorCode,
+                                             const char *msg) {
+    jstring str = nullptr;
+    if (thread == MAIN_THREAD) {
+        str = this->env->NewStringUTF(msg);
+        this->env->CallVoidMethod(this->jobj, mid_MediaPlayerSLInitError, errorCode, str);
+        env->ReleaseStringUTFChars(str, msg);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "Player init error code = %d, msg = %s", errorCode, msg);
+            }
+            return;
+        }
+        str = env->NewStringUTF(msg);
+        env->CallVoidMethod(this->jobj, mid_MediaPlayerSLInitError, errorCode, str);
+        env->DeleteLocalRef(str);
         jvm->DetachCurrentThread();
     }
 }
