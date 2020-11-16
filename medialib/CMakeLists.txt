@@ -5,7 +5,6 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-
 # cmakelists 设置c++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)

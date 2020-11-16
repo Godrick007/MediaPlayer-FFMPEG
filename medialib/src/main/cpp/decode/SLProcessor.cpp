@@ -159,13 +159,13 @@ void SLProcessor::initialize() {
 
 
     //player
-    const SLInterfaceID playerIds[4] = {
+    const SLInterfaceID playerIds[5] = {
             SL_IID_BUFFERQUEUE,
             SL_IID_VOLUME,
             SL_IID_MUTESOLO,
             SL_IID_PLAYBACKRATE
     };
-    const SLboolean playerReq[4] = {
+    const SLboolean playerReq[5] = {
             SL_BOOLEAN_TRUE,
             SL_BOOLEAN_TRUE,
             SL_BOOLEAN_TRUE,

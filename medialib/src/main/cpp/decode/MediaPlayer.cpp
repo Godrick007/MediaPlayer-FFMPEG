@@ -4,6 +4,14 @@
 
 #include "MediaPlayer.h"
 
+int AVContextInterruptCallback(void *context) {
+    MediaPlayer *instance = static_cast<MediaPlayer *>(context);
+    if (instance->playState->exit) {
+        return AVERROR_EOF;
+    }
+    return 0;
+}
+
 
 MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url) {
     this->playState = playState;
@@ -176,6 +184,9 @@ void MediaPlayer::initialized() {
         return;
     }
 
+    this->pAVFormatContext->interrupt_callback.callback = AVContextInterruptCallback;
+    this->pAVFormatContext->interrupt_callback.opaque = this;
+
     for (int i = 0; i < pAVFormatContext->nb_streams; i++) {
 
         if (pAVFormatContext->streams[i]->codecpar->codec_type ==
@@ -238,7 +249,6 @@ void MediaPlayer::initialized() {
 void MediaPlayer::startPlay() {
 
 
-
     if (this->audio == nullptr) {
         if (LOG_DEBUG) {
             LOGD("MediaPlayer", "audio is null");
@@ -259,7 +269,7 @@ void MediaPlayer::startPlay() {
 
     this->video->play();
 
-    while (this->playState && !this->playState->exit) {
+    while (this->playState != nullptr && !this->playState->exit) {
 
         if (this->playState->seek) {
             av_usleep(PlayState::THRESHOLD_SLEEP_100);
@@ -283,18 +293,16 @@ void MediaPlayer::startPlay() {
             if (pkt->stream_index == this->audio->streamIndex) {//audio pkt
                 this->audio->queue->putAVPacket(pkt);
             } else if (pkt->stream_index == this->video->streamIndex) {//video pkt
-                this->video->queue->putAVPacket(pkt);
+//                this->video->queue->putAVPacket(pkt);
             } else {
                 av_packet_free(&pkt);
                 av_free(pkt);
-                pkt = nullptr;
             }
         } else {
             av_packet_free(&pkt);
             av_free(pkt);
-            pkt = nullptr;
 
-            while (this->playState && !this->playState->exit) {
+            while (this->playState != nullptr && !this->playState->exit) {
                 if (audio->queue->getQueueSize() > 0) {
                     av_usleep(PlayState::THRESHOLD_SLEEP_500);
                     continue;
@@ -315,6 +323,9 @@ void MediaPlayer::startPlay() {
         this->cb2j->cb2j_MediaPlayer_Complete(WORK_THREAD);
     }
 }
+
+
+
 
 
 

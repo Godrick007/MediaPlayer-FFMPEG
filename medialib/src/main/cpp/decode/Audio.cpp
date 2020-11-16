@@ -9,6 +9,10 @@ Audio::Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j) {
     this->sampleRate = sampleRate;
     this->cb2j = cb2j;
     this->pSLProcessor = new SLProcessor(sampleRate, this);
+    this->queue = new Queue(playState);
+    this->buffer = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2));
+    this->outSampleBuffer = reinterpret_cast<void **>(static_cast<SAMPLETYPE **>(malloc(
+            sampleRate * 2 * 2)));
 
     this->pSoundTouch = new SoundTouch();
     this->pSoundTouch->setSampleRate(sampleRate);
@@ -27,7 +31,7 @@ void *threadCallbackDecode(void *data) {
 }
 
 void Audio::play() {
-    if (this->playState && !this->playState->exit) {
+    if (this->playState != nullptr && !this->playState->exit) {
         pthread_create(&this->threadDecode, nullptr, threadCallbackDecode, this);
     }
 }
@@ -35,7 +39,7 @@ void Audio::play() {
 int Audio::resampleAudio(void **pcmBuffer) {
 
 
-    while (this->playState && !this->playState->exit) {
+    while (this->playState != nullptr && !this->playState->exit) {
 
         if (this->playState->seek) {
             av_usleep(PlayState::THRESHOLD_SLEEP_100);
@@ -75,7 +79,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
 
         ret = avcodec_send_packet(this->pAVCodecContext, this->pAVPacket);
 
-        if (!ret) {
+        if (ret != 0) {
             av_packet_free(&this->pAVPacket);
             av_free(this->pAVPacket);
             this->pAVPacket = nullptr;
@@ -88,7 +92,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
 
         ret = avcodec_receive_frame(this->pAVCodecContext, this->pAVFrame);
 
-        if (!ret) {
+        if (ret != 0) {
             av_frame_free(&this->pAVFrame);
             av_free(this->pAVFrame);
             this->pAVFrame = nullptr;
@@ -124,13 +128,16 @@ int Audio::resampleAudio(void **pcmBuffer) {
                     nullptr
             );
 
-            if (pSwrContext) {
+            if (pSwrContext == nullptr || swr_init(pSwrContext) < 0) {
                 av_frame_free(&this->pAVFrame);
                 av_free(this->pAVFrame);
                 this->pAVFrame = nullptr;
                 av_packet_free(&this->pAVPacket);
                 av_free(this->pAVPacket);
                 this->pAVPacket = nullptr;
+                if (pSwrContext != nullptr) {
+                    swr_free(&pSwrContext);
+                }
                 pthread_mutex_unlock(&this->mutexDecode);
                 continue;
             }
@@ -155,7 +162,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
             }
             this->clock = this->nowTime;
 
-            *pcmBuffer = this->buffer;
+            *pcmBuffer = reinterpret_cast<SAMPLETYPE *>(this->buffer);
 
 
             av_frame_free(&this->pAVFrame);
@@ -178,45 +185,71 @@ int Audio::resampleAudio(void **pcmBuffer) {
     return this->dataSize;
 }
 
+//int Audio::getSoundTouchData(SAMPLETYPE **sampleBuffer) {
+//
+//    while (this->playState != nullptr && !this->playState->exit) {
+//
+//        uint8_t *outBuffer = nullptr;
+//        if (this->finish) {
+//            finish = false;
+//            dataSize = resampleAudio(reinterpret_cast<void **>(&outBuffer));
+//
+//            if (dataSize > 0) {
+//
+//                for (int i = 0; i < dataSize / 2 + 1; i++) {
+//                    (*sampleBuffer)[i] = (outBuffer[i * 2] | outBuffer[i * 2 + 1] << 8);
+//                }
+//
+//                this->pSoundTouch->putSamples(*sampleBuffer, nb);
+//                this->num = this->pSoundTouch->receiveSamples(
+//                        *sampleBuffer, dataSize / 4);
+//
+//            } else {
+//                this->pSoundTouch->flush();
+//            }
+//        }
+//
+//        if (num == 0) {
+//            finish = true;
+//            continue;
+//        } else {
+//
+//            if (outBuffer == nullptr) {
+//                this->num = this->pSoundTouch->receiveSamples(
+//                        *sampleBuffer, dataSize / 4);
+//                if (num == 0) {
+//                    finish = true;
+//                    continue;
+//                }
+//            }
+//            return num;
+//        }
+//
+//
+//    }
+//    return 0;
+//}
+
 int Audio::getSoundTouchData(SAMPLETYPE **sampleBuffer) {
 
-    while (this->playState && !this->playState->exit) {
+    while (this->playState != nullptr && !this->playState->exit) {
 
         uint8_t *outBuffer = nullptr;
         if (this->finish) {
             finish = false;
             dataSize = resampleAudio(reinterpret_cast<void **>(&outBuffer));
-
-            if (dataSize > 0) {
-
-                for (int i = 0; i < dataSize / 2 + 1; i++) {
-                    *sampleBuffer[i] = (outBuffer[i * 2] | outBuffer[i * 2 + 1] << 8);
-                }
-
-                this->pSoundTouch->putSamples(*sampleBuffer, nb);
-                this->num = this->pSoundTouch->receiveSamples(*sampleBuffer, dataSize / 4);
-
-            } else {
-                this->pSoundTouch->flush();
-            }
+            *sampleBuffer = reinterpret_cast<SAMPLETYPE *>(outBuffer);
+            return dataSize;
         }
 
-        if (num == 0) {
+        if (dataSize == 0) {
             finish = true;
             continue;
         } else {
-
-            if (outBuffer == nullptr) {
-                num = this->pSoundTouch->receiveSamples(*sampleBuffer, dataSize / 4);
-                if (num == 0) {
-                    finish = true;
-                    continue;
-                }
-            }
-            return num;
+            finish = true;
+            continue;
         }
-
-
     }
     return 0;
 }
+

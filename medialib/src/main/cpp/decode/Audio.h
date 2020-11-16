@@ -14,6 +14,9 @@
 #include <pthread.h>
 
 extern "C" {
+#include "../include/libavutil/channel_layout.h"
+#include "../include/libavutil/frame.h"
+#include "../include/libavutil/mem.h"
 #include "../include/libavcodec/avcodec.h"
 #include "../include/libavutil/time.h"
 #include "../include/libswresample/swresample.h"
@@ -54,7 +57,8 @@ public:
     int ret;
     int nb;
     long dataSize;
-    uint8_t *buffer = nullptr;
+    uint8_t *buffer;
+    void **outSampleBuffer = nullptr;
     int num;
 
     bool finish = false;

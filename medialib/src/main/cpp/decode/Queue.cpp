@@ -26,11 +26,7 @@ int Queue::putAVPacket(AVPacket *packet) {
 
 int Queue::getAVPacket(AVPacket *packet) {
     pthread_mutex_lock(&mutexQueue);
-
-    for (;;) {
-        if (playState == nullptr || playState->exit) {
-            break;
-        }
+    while (playState == nullptr || !playState->exit) {
         if (qAVPacket.size() > 0) {
             AVPacket *pkt = qAVPacket.front();
             if (av_packet_ref(packet, pkt) == 0) {
@@ -43,9 +39,7 @@ int Queue::getAVPacket(AVPacket *packet) {
         } else {
             pthread_cond_wait(&condQueue, &mutexQueue);
         }
-
     }
-
     pthread_mutex_unlock(&mutexQueue);
     return 0;
 }

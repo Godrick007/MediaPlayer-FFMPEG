@@ -167,11 +167,14 @@ void Callback2Java::cb2j_MediaPlayer_Progress(CallbackThread thread, long curren
     } else {
         JNIEnv *env;
         if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
-            if (LOG_DEBUG) {
-                //LOGD("MediaPlayer", "media loading");
-            }
             return;
         }
+//        if (LOG_DEBUG) {
+//            LOGD("MediaPlayer", "cb2j_MediaPlayer_Progress current is %ld,duration is %ld",
+//                 current, duration);
+//        }
+//        LOGD("MediaPlayer", "cb2j_MediaPlayer_Progress current is %ld,duration is %ld",
+//             current, duration);
         env->CallVoidMethod(this->jobj, mid_MediaPlayerProgress, current, duration);
         jvm->DetachCurrentThread();
     }
