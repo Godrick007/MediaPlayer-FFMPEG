@@ -7,6 +7,7 @@ public class NativeMediaEnter {
 
     static {
         System.loadLibrary("MediaPlayer-FFMPEG");
+        System.loadLibrary("soundtouch");
         System.loadLibrary("avcodec-58");
         System.loadLibrary("avdevice-58");
         System.loadLibrary("avfilter-7");
@@ -37,8 +38,8 @@ public class NativeMediaEnter {
         nSetSurface(surface);
     }
 
-    public void prepare(String url) {
-        nPrepare(url);
+    public void prepare(String url, boolean isLiving) {
+        nPrepare(url, isLiving);
     }
 
     public void start() {
@@ -73,7 +74,7 @@ public class NativeMediaEnter {
 
     private native void nSetSurface(Surface surface);
 
-    private native void nPrepare(String url);
+    private native void nPrepare(String url, boolean isLiving);
 
     private native void nStart();
 
@@ -86,6 +87,7 @@ public class NativeMediaEnter {
     private native void nRelease();
 
     private native void nSetPlaySpeed(float speed);
+
 
     //======================ndk methods end ==================
 

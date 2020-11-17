@@ -48,6 +48,8 @@ public:
     AVFrame *pAVFrame = nullptr;
     AVRational timeBase;
 
+    SwrContext *pSwrContext = nullptr;
+
     SLProcessor *pSLProcessor = nullptr;
 
     pthread_t threadDecode;
@@ -58,24 +60,26 @@ public:
     int nb;
     long dataSize;
     uint8_t *buffer;
-    void **outSampleBuffer = nullptr;
     int num;
+    int nSample;
+
+    SAMPLETYPE *pSoundTouchBuffer = nullptr;
 
     bool finish = false;
-
+    bool isLiving = false;
 
     double nowTime;
     double clock;
     long lastTime;
 
 public:
-    Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j);
+    Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j, bool isLiving = false);
 
     ~Audio();
 
     int resampleAudio(void **pcmBuffer);
 
-    int getSoundTouchData(SAMPLETYPE **sampleBuffer);
+    int getSoundTouchData(void **sampleBuffer);
 
 public:
     void play();
@@ -83,6 +87,10 @@ public:
     void pause();
 
     void stop();
+
+    void setSpeed(float speed);
+
+    void setPitch(float pitch);
 
     void release();
 };

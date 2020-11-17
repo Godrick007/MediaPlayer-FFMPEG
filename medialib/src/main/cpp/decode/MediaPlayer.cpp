@@ -13,10 +13,12 @@ int AVContextInterruptCallback(void *context) {
 }
 
 
-MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url) {
+MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url,
+                         bool isLiving) {
     this->playState = playState;
     this->cb2j = cb2j;
     this->url = url;
+    this->isLiving = isLiving;
     pthread_mutex_init(&mutexInit, nullptr);
     pthread_mutex_init(&mutexSeek, nullptr);
     prepare();
@@ -81,15 +83,19 @@ void MediaPlayer::setChannel(int channel) {
 }
 
 void MediaPlayer::setSpeed(float speed) {
-
+    if (this->audio != nullptr) {
+        audio->setSpeed(speed);
+    }
 }
 
 void MediaPlayer::setPitch(float pitch) {
-
+    if (this->audio != nullptr) {
+        audio->setPitch(pitch);
+    }
 }
 
 int MediaPlayer::getSampleRate() {
-    return 0;
+    return this->audio != nullptr ? this->audio->sampleRate : 0;
 }
 
 void MediaPlayer::startStopRecord(bool start) {
@@ -194,11 +200,12 @@ void MediaPlayer::initialized() {
             if (this->audio == nullptr) {
                 this->audio = new Audio(this->playState,
                                         pAVFormatContext->streams[i]->codecpar->sample_rate,
-                                        this->cb2j);
+                                        this->cb2j, this->isLiving);
                 this->audio->streamIndex = i;
                 this->audio->pAVCodecParameters = pAVFormatContext->streams[i]->codecpar;
-                this->audio->duration = pAVFormatContext->duration / AV_TIME_BASE;
-                this->audio->timeBase = pAVFormatContext->streams[i]->time_base;
+                this->audio->duration = pAVFormatContext->duration / AV_TIME_BASE * 1000;
+                this->audio->timeBase = {pAVFormatContext->streams[i]->time_base.num * 1000,
+                                         pAVFormatContext->streams[i]->time_base.den};
                 this->duration = audio->duration;
             }
         } else if (pAVFormatContext->streams[i]->codecpar->codec_type ==

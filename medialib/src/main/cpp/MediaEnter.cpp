@@ -11,7 +11,7 @@ MediaPlayer *pMediaPlayer = nullptr;
 
 void _setSurface(JNIEnv *env, jobject instance, jobject surface);
 
-void _prepare(JNIEnv *env, jobject instance, jstring url);
+void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving);
 
 void _start(JNIEnv *env, jobject instance);
 
@@ -30,7 +30,7 @@ static const JNINativeMethod methods[] = {
         {"nSetSurface",   "(Landroid/view/Surface;)V", (void *) _setSurface},
 
         //media player controller
-        {"nPrepare",      "(Ljava/lang/String;)V",     (void *) _prepare},
+        {"nPrepare",      "(Ljava/lang/String;Z)V",    (void *) _prepare},
         {"nStart",        "()V",                       (void *) _start},
         {"nPause",        "()V",                       (void *) _pause},
         {"nResume",       "()V",                       (void *) _resume},
@@ -65,7 +65,7 @@ void _setSurface(JNIEnv *env, jobject instance, jobject surface) {
 
 }
 
-void _prepare(JNIEnv *env, jobject instance, jstring url) {
+void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
     const char *_url = env->GetStringUTFChars(url, nullptr);
     LOGE("MediaPlayer", "Open media file %s", _url);
 
@@ -78,7 +78,7 @@ void _prepare(JNIEnv *env, jobject instance, jstring url) {
     }
 
     if (!pMediaPlayer) {
-        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url);
+        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url, isLiving);
     }
 
 

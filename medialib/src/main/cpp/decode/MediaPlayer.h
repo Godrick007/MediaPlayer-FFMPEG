@@ -31,6 +31,7 @@ public:
     pthread_mutex_t mutexInit;
 
     bool exit = false;
+    bool isLiving = false;
 
     int duration = 0;
 
@@ -45,7 +46,7 @@ public:
     int ret;
 
 public:
-    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url);
+    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url, bool isLiving);
 
     ~MediaPlayer();
 

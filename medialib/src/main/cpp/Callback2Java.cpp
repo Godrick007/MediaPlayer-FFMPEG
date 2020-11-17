@@ -26,7 +26,7 @@ Callback2Java::Callback2Java(JavaVM *jvm, JNIEnv *env, jobject jobj) {
     mid_MediaPlayerPrepared = env->GetMethodID(clz, "cb_MediaPlayerPrepared", "()V");
     mid_MediaPlayerComplete = env->GetMethodID(clz, "cb_MediaPlayerComplete", "()V");
     mid_MediaPlayerLoading = env->GetMethodID(clz, "cb_MediaPlayerLoading", "(Z)V");
-    mid_MediaPlayerLoading = env->GetMethodID(clz, "cb_MediaPlayerProgress", "(JJ)V");
+    mid_MediaPlayerProgress = env->GetMethodID(clz, "cb_MediaPlayerProgress", "(JJ)V");
     mid_MediaPlayerDBValue = env->GetMethodID(clz, "cb_MediaPlayerDBValue", "(D)V");
     mid_MediaPlayerSLInitError = env->GetMethodID(clz, "cb_MediaPlayerSLInitError",
                                                   "(ILjava/lang/String;)V");

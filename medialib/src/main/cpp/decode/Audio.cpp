@@ -4,22 +4,25 @@
 
 #include "Audio.h"
 
-Audio::Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j) {
+Audio::Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j, bool isLiving) {
     this->playState = playState;
     this->sampleRate = sampleRate;
     this->cb2j = cb2j;
     this->pSLProcessor = new SLProcessor(sampleRate, this);
     this->queue = new Queue(playState);
     this->buffer = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2));
-    this->outSampleBuffer = reinterpret_cast<void **>(static_cast<SAMPLETYPE **>(malloc(
-            sampleRate * 2 * 2)));
+    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+//    this->isLiving = isLiving;
+    this->isLiving = false;
+    if (isLiving) {
 
-    this->pSoundTouch = new SoundTouch();
-    this->pSoundTouch->setSampleRate(sampleRate);
-    this->pSoundTouch->setChannels(2);
-    this->pSoundTouch->setPitch(this->pitch);
-    this->pSoundTouch->setTempo(this->speed);
-
+    } else {
+        this->pSoundTouch = new SoundTouch();
+        this->pSoundTouch->setSampleRate(sampleRate);
+        this->pSoundTouch->setChannels(2);
+        this->pSoundTouch->setPitch(this->pitch);
+        this->pSoundTouch->setTempo(this->speed);
+    }
     pthread_mutex_init(&this->mutexDecode, nullptr);
 
 }
@@ -114,33 +117,37 @@ int Audio::resampleAudio(void **pcmBuffer) {
                         this->pAVFrame->channel_layout);
             }
 
-            SwrContext *pSwrContext = nullptr;
+            if (this->pSwrContext == nullptr) {
+                pSwrContext = swr_alloc_set_opts(
+                        nullptr,
+                        AV_CH_LAYOUT_STEREO,
+                        AV_SAMPLE_FMT_S16,
+                        this->pAVFrame->sample_rate,
+                        this->pAVFrame->channel_layout,
+                        (AVSampleFormat)
+                                this->pAVFrame->format,
+                        this->pAVFrame->sample_rate,
+                        0,
+                        nullptr
+                );
 
-            pSwrContext = swr_alloc_set_opts(
-                    nullptr,
-                    AV_CH_LAYOUT_STEREO,
-                    AV_SAMPLE_FMT_S16,
-                    this->pAVFrame->sample_rate,
-                    this->pAVFrame->channel_layout,
-                    (AVSampleFormat) this->pAVFrame->format,
-                    this->pAVFrame->sample_rate,
-                    0,
-                    nullptr
-            );
-
-            if (pSwrContext == nullptr || swr_init(pSwrContext) < 0) {
-                av_frame_free(&this->pAVFrame);
-                av_free(this->pAVFrame);
-                this->pAVFrame = nullptr;
-                av_packet_free(&this->pAVPacket);
-                av_free(this->pAVPacket);
-                this->pAVPacket = nullptr;
-                if (pSwrContext != nullptr) {
-                    swr_free(&pSwrContext);
+                if (pSwrContext == nullptr || swr_init(pSwrContext) < 0) {
+                    av_frame_free(&this->pAVFrame);
+                    av_free(this->pAVFrame);
+                    this->pAVFrame = nullptr;
+                    av_packet_free(&this->pAVPacket);
+                    av_free(this->pAVPacket);
+                    this->pAVPacket = nullptr;
+                    if (pSwrContext != nullptr) {
+                        swr_free(&pSwrContext);
+                    }
+                    pSwrContext = nullptr;
+                    pthread_mutex_unlock(&this->mutexDecode);
+                    continue;
                 }
-                pthread_mutex_unlock(&this->mutexDecode);
-                continue;
             }
+
+
 
 
             this->nb = swr_convert(
@@ -162,8 +169,6 @@ int Audio::resampleAudio(void **pcmBuffer) {
             }
             this->clock = this->nowTime;
 
-            *pcmBuffer = reinterpret_cast<SAMPLETYPE *>(this->buffer);
-
 
             av_frame_free(&this->pAVFrame);
             av_free(this->pAVFrame);
@@ -171,66 +176,46 @@ int Audio::resampleAudio(void **pcmBuffer) {
             av_packet_free(&this->pAVPacket);
             av_free(this->pAVPacket);
             this->pAVPacket = nullptr;
-            swr_free(&pSwrContext);
-            pSwrContext = nullptr;
+
+
+            if (pSoundTouch != nullptr) {
+
+                if (dataSize > 0) {
+                    for (int i = 0; i < dataSize / 2 + 1; i++) {
+                        pSoundTouchBuffer[i] = (buffer[i * 2] | buffer[i * 2 + 1] << 8);
+                    }
+                    pSoundTouch->putSamples(pSoundTouchBuffer, nb);
+                    nSample = pSoundTouch->receiveSamples(pSoundTouchBuffer, dataSize / 4);
+                } else {
+                    pSoundTouch->clear();
+                }
+
+                if (nSample == 0) {
+                    pthread_mutex_unlock(&this->mutexDecode);
+                    continue;
+                } else {
+                    if (*buffer == 0) {
+                        nSample = pSoundTouch->receiveSamples(pSoundTouchBuffer, dataSize / 4);
+                        if (nSample == 0) {
+                            pthread_mutex_unlock(&this->mutexDecode);
+                            continue;
+                        }
+                    }
+                }
+                *pcmBuffer = pSoundTouchBuffer;
+//                dataSize *= 4;
+
+            } else {
+                *pcmBuffer = this->buffer;
+            }
             pthread_mutex_unlock(&this->mutexDecode);
             break;
-
         }
-
-
     }
-
-
     return this->dataSize;
 }
 
-//int Audio::getSoundTouchData(SAMPLETYPE **sampleBuffer) {
-//
-//    while (this->playState != nullptr && !this->playState->exit) {
-//
-//        uint8_t *outBuffer = nullptr;
-//        if (this->finish) {
-//            finish = false;
-//            dataSize = resampleAudio(reinterpret_cast<void **>(&outBuffer));
-//
-//            if (dataSize > 0) {
-//
-//                for (int i = 0; i < dataSize / 2 + 1; i++) {
-//                    (*sampleBuffer)[i] = (outBuffer[i * 2] | outBuffer[i * 2 + 1] << 8);
-//                }
-//
-//                this->pSoundTouch->putSamples(*sampleBuffer, nb);
-//                this->num = this->pSoundTouch->receiveSamples(
-//                        *sampleBuffer, dataSize / 4);
-//
-//            } else {
-//                this->pSoundTouch->flush();
-//            }
-//        }
-//
-//        if (num == 0) {
-//            finish = true;
-//            continue;
-//        } else {
-//
-//            if (outBuffer == nullptr) {
-//                this->num = this->pSoundTouch->receiveSamples(
-//                        *sampleBuffer, dataSize / 4);
-//                if (num == 0) {
-//                    finish = true;
-//                    continue;
-//                }
-//            }
-//            return num;
-//        }
-//
-//
-//    }
-//    return 0;
-//}
-
-int Audio::getSoundTouchData(SAMPLETYPE **sampleBuffer) {
+int Audio::getSoundTouchData(void **sampleBuffer) {
 
     while (this->playState != nullptr && !this->playState->exit) {
 
@@ -238,18 +223,66 @@ int Audio::getSoundTouchData(SAMPLETYPE **sampleBuffer) {
         if (this->finish) {
             finish = false;
             dataSize = resampleAudio(reinterpret_cast<void **>(&outBuffer));
-            *sampleBuffer = reinterpret_cast<SAMPLETYPE *>(outBuffer);
-            return dataSize;
+
+            if (dataSize > 0) {
+
+                for (int i = 0; i < dataSize / 2 + 1; i++) {
+                    pSoundTouchBuffer[i] = (outBuffer[i * 2] | outBuffer[i * 2 + 1] << 8);
+                }
+
+                this->pSoundTouch->putSamples(pSoundTouchBuffer, nb);
+                this->num = this->pSoundTouch->receiveSamples(
+                        pSoundTouchBuffer, dataSize / 4);
+
+            } else {
+                this->pSoundTouch->flush();
+            }
         }
 
-        if (dataSize == 0) {
+        if (num == 0) {
             finish = true;
             continue;
         } else {
-            finish = true;
-            continue;
+
+            if (outBuffer == nullptr) {
+                this->num = this->pSoundTouch->receiveSamples(
+                        pSoundTouchBuffer, dataSize / 4);
+                if (num == 0) {
+                    finish = true;
+                    continue;
+                }
+            }
+            *sampleBuffer = pSoundTouchBuffer;
+            return num;
         }
+
+
     }
     return 0;
+}
+
+
+void Audio::setSpeed(float speed) {
+    if (this->pSoundTouch != nullptr) {
+        this->pSoundTouch->setTempo(speed);
+    }
+}
+
+void Audio::setPitch(float pitch) {
+    if (this->pSoundTouch != nullptr) {
+        this->pSoundTouch->setPitch(pitch);
+    }
+}
+
+void Audio::release() {
+
+}
+
+void Audio::stop() {
+
+}
+
+void Audio::pause() {
+
 }
 

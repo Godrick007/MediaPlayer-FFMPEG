@@ -30,10 +30,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button btnPrepare = findViewById(R.id.btn_prepare);
         Button btnStart = findViewById(R.id.btn_start);
         Button btnStop = findViewById(R.id.btn_stop);
+        Button btnSpeed20 = findViewById(R.id.btn_speed20);
 
         btnPrepare.setOnClickListener(this);
         btnStart.setOnClickListener(this);
         btnStop.setOnClickListener(this);
+        btnSpeed20.setOnClickListener(this);
 
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
 
@@ -43,19 +45,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_prepare:
-                final File file = new File("sdcard/aaaa.mp4");
+                final File file = new File("sdcard/aaaa.wmv");
+//                final File file = new File("sdcard/bbbb.mp4");
 //                final File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaaa.mp4");
                 if (!file.exists()) {
                     Log.e("MediaPlayer", "file is not exists");
                     return;
                 }
-                NativeMediaEnter.getInstance().prepare(file.getAbsolutePath());
+                NativeMediaEnter.getInstance().prepare(file.getAbsolutePath(), false);
                 break;
             case R.id.btn_start:
                 NativeMediaEnter.getInstance().start();
                 break;
             case R.id.btn_stop:
                 NativeMediaEnter.getInstance().stop();
+                break;
+            case R.id.btn_speed20:
+                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
                 break;
         }
     }

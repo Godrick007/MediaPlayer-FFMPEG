@@ -10,23 +10,27 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
     SLProcessor *instance = static_cast<SLProcessor *>(context);
 
     if (instance != nullptr) {
-
-        int bufferSize = instance->audio->getSoundTouchData(&instance->pSampleBuffer);
+        int bufferSize = instance->audio->resampleAudio(&instance->pPCMBuffer);
+//        int bufferSize = instance->audio->getSoundTouchData(
+//                reinterpret_cast<void **>(&instance->pPCMBuffer));
         if (bufferSize > 0) {
             instance->audio->clock += bufferSize / ((double) instance->audio->sampleRate * 2 * 2);
-            if (instance->audio->clock - instance->audio->lastTime >= 0.1) {
+            if (instance->audio->clock - instance->audio->lastTime >= 100) {
                 instance->audio->lastTime = instance->audio->clock;
                 instance->audio->cb2j->cb2j_MediaPlayer_Progress(WORK_THREAD,
                                                                  instance->audio->clock,
                                                                  instance->audio->duration);
             }
-
-            instance->audio->cb2j->cb2j_MediaPlayer_DBValue(WORK_THREAD,
-                                                            instance->getPCMDB(
-                                                                    reinterpret_cast<char *>(instance->pSampleBuffer),
-                                                                    bufferSize * 4));
-            (*instance->pcmBufferQueue)->Enqueue(instance->pcmBufferQueue, instance->pSampleBuffer,
-                                                 bufferSize * 2 * 2);
+//            instance->audio->cb2j->cb2j_MediaPlayer_DBValue(WORK_THREAD,
+//                                                            instance->getPCMDB(
+//                                                                    /*reinterpret_cast<char *>(instance->pSoundTouchBuffer),*/
+//                                                                    static_cast<char *>(instance->pPCMBuffer),
+//                                                                    bufferSize));
+            /*  (*instance->pcmBufferQueue)->Enqueue(instance->pcmBufferQueue,
+                                                   instance->pSoundTouchBuffer,
+                                                   bufferSize * 2 * 2);*/
+            (*instance->pcmBufferQueue)->Enqueue(instance->pcmBufferQueue, instance->pPCMBuffer,
+                                                 bufferSize);
         }
 
     }
@@ -37,7 +41,8 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
 SLProcessor::SLProcessor(int sampleRate, Audio *audio) {
     this->sampleRate = sampleRate;
     this->audio = audio;
-    this->pSampleBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+    this->pPCMBuffer = malloc(sampleRate * 2 * 2);
 
 }
 
@@ -128,7 +133,8 @@ void SLProcessor::initialize() {
 
     if (result != SL_RESULT_SUCCESS) {
         if (LOG_DEBUG) {
-            LOGE("MediaPlayer", "SL outputMixEnvironmentReverb SetEnvironmentalReverbProperties is %d", result);
+            LOGE("MediaPlayer",
+                 "SL outputMixEnvironmentReverb SetEnvironmentalReverbProperties is %d", result);
         }
         this->audio->cb2j->cb2j_MediaPlayer_SL_InitError(WORK_THREAD, result, "");
         return;
@@ -137,11 +143,12 @@ void SLProcessor::initialize() {
 
 
     SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, this->outputMixObject};
-
+    SLDataSink audioSink = {&outputMix, nullptr};
 
     //data source
 
-    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
+                                                            2};
 
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
@@ -155,17 +162,15 @@ void SLProcessor::initialize() {
 
     SLDataSource slDataSource = {&android_queue, &pcm};
 
-    SLDataSink audioSink = {&outputMix, nullptr};
-
 
     //player
-    const SLInterfaceID playerIds[5] = {
+    const SLInterfaceID playerIds[4] = {
             SL_IID_BUFFERQUEUE,
             SL_IID_VOLUME,
             SL_IID_MUTESOLO,
             SL_IID_PLAYBACKRATE
     };
-    const SLboolean playerReq[5] = {
+    const SLboolean playerReq[4] = {
             SL_BOOLEAN_TRUE,
             SL_BOOLEAN_TRUE,
             SL_BOOLEAN_TRUE,
