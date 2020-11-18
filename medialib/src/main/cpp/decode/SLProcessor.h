@@ -40,7 +40,7 @@ public:
     SLVolumeItf pcmPlayerVolume = nullptr;
     SLMuteSoloItf pcmPlayerMute = nullptr;
 
-    SAMPLETYPE *pSoundTouchBuffer = nullptr;
+//    SAMPLETYPE *pSoundTouchBuffer = nullptr;
     void *pPCMBuffer = nullptr;
 
     int sampleRate = 0;
@@ -65,6 +65,15 @@ public:
 
     int getPCMDB(char *pcmCate, size_t pcmSize);
 
+    void pause();
+
+    void stop();
+
+    void resume();
+
+    void release();
+
+    void setVolume(int percent);
 };
 
 

@@ -25,7 +25,9 @@ MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *
 }
 
 MediaPlayer::~MediaPlayer() {
-
+    release();
+    pthread_mutex_destroy(&mutexInit);
+    pthread_mutex_destroy(&mutexSeek);
 }
 
 void *initThreadCallback(void *data) {
@@ -55,27 +57,115 @@ void MediaPlayer::play() {
 }
 
 void MediaPlayer::pause() {
-
+    if (playState != nullptr) {
+        playState->pause = true;
+    }
+    if (audio != nullptr) {
+        audio->pause();
+    }
 }
 
 void MediaPlayer::resume() {
-
+    if (playState != nullptr) {
+        playState->pause = false;
+    }
+    if (audio != nullptr) {
+        audio->resume();
+    }
 }
 
 void MediaPlayer::stop() {
-
+    release();
 }
 
 void MediaPlayer::release() {
+    playState->exit = true;
 
+    pthread_join(threadPlay, nullptr);
+
+    pthread_mutex_lock(&mutexInit);
+
+    int sleepCount = 0;
+
+    while (!exit) {
+
+        if (sleepCount > 1000) {
+            exit = true;
+        }
+        sleepCount++;
+        av_usleep(PlayState::THRESHOLD_SLEEP_10);
+    }
+
+    if (audio != nullptr) {
+        delete audio;
+        audio = nullptr;
+    }
+
+    if (video != nullptr) {
+        delete video;
+        video = nullptr;
+    }
+
+    if (pAVFormatContext != nullptr) {
+        avformat_close_input(&pAVFormatContext);
+        avformat_free_context(pAVFormatContext);
+        pAVFormatContext = nullptr;
+    }
+
+    if (playState != nullptr) {
+        playState = nullptr;
+    }
+
+    if (cb2j != nullptr) {
+        cb2j = nullptr;
+    }
+
+    pthread_mutex_unlock(&mutexInit);
 }
 
 void MediaPlayer::seek(int64_t second) {
 
+    if (duration < 0) {
+        return;
+    }
+
+    if (second < 0 || second * 1000 > duration) {
+        return;
+    }
+
+    playState->seek = true;
+    pthread_mutex_lock(&mutexSeek);
+
+    uint64_t rel = second * AV_TIME_BASE;
+    avformat_seek_file(pAVFormatContext, -1, INT64_MIN, rel, INT64_MAX, 0);
+
+    if (audio != nullptr) {
+        audio->queue->clearAVPacketQueue();
+        audio->clock = 0;
+        audio->lastTime = 0;
+        pthread_mutex_lock(&audio->mutexDecode);
+        avcodec_flush_buffers(audio->pAVCodecContext);
+        pthread_mutex_unlock(&audio->mutexDecode);
+    }
+
+    if (video != nullptr) {
+        video->queue->clearAVPacketQueue();
+        video->clock = 0;
+        pthread_mutex_lock(&video->mutexDecode);
+        avcodec_flush_buffers(video->pAVCodecContext);
+        pthread_mutex_unlock(&video->mutexDecode);
+    }
+
+
+    pthread_mutex_unlock(&mutexSeek);
+    playState->seek = false;
+
 }
 
 void MediaPlayer::setVolume(int percent) {
-
+    if (audio != nullptr) {
+        audio->setVolume(percent);
+    }
 }
 
 void MediaPlayer::setChannel(int channel) {
@@ -228,14 +318,14 @@ void MediaPlayer::initialized() {
 
     int ret = 0;
 
-    if (this->audio) {
+    if (this->audio != nullptr) {
         ret = getAVCodecContext(this->audio->pAVCodecParameters, &this->audio->pAVCodecContext);
         if (ret < 0) {
             return;
         }
     }
 
-    if (this->video) {
+    if (this->video != nullptr) {
         ret = getAVCodecContext(this->video->pAVCodecParameters, &this->video->pAVCodecContext);
         if (ret < 0) {
             return;
@@ -256,25 +346,39 @@ void MediaPlayer::initialized() {
 void MediaPlayer::startPlay() {
 
 
-    if (this->audio == nullptr) {
+//    if (this->audio == nullptr) {
+//        if (LOG_DEBUG) {
+//            LOGD("MediaPlayer", "audio is null");
+//            return;
+//        }
+//    }
+//
+//    if (this->video == nullptr) {
+//        if (LOG_DEBUG) {
+//            LOGD("MediaPlayer", "video is null");
+//            return;
+//        }
+//    }
+
+    if (audio == nullptr && video == nullptr) {
         if (LOG_DEBUG) {
-            LOGD("MediaPlayer", "audio is null");
+            LOGD("MediaPlayer", "audio and video is null");
             return;
         }
     }
 
-    if (this->video == nullptr) {
-        if (LOG_DEBUG) {
-            LOGD("MediaPlayer", "audio is null");
-            return;
-        }
+    if (video != nullptr && audio != nullptr) {
+        this->video->audio = this->audio;
     }
 
-    this->video->audio = this->audio;
+    if (audio != nullptr) {
+        this->audio->play();
+    }
 
-    this->audio->play();
+    if (video != nullptr) {
+        this->video->play();
+    }
 
-    this->video->play();
 
     while (this->playState != nullptr && !this->playState->exit) {
 
@@ -298,9 +402,14 @@ void MediaPlayer::startPlay() {
 
         if (ret == 0) {
             if (pkt->stream_index == this->audio->streamIndex) {//audio pkt
-                this->audio->queue->putAVPacket(pkt);
+                if (audio != nullptr) {
+                    this->audio->queue->putAVPacket(pkt);
+                }
+
             } else if (pkt->stream_index == this->video->streamIndex) {//video pkt
-//                this->video->queue->putAVPacket(pkt);
+                if (video != nullptr) {
+                    this->video->queue->putAVPacket(pkt);
+                }
             } else {
                 av_packet_free(&pkt);
                 av_free(pkt);

@@ -59,7 +59,8 @@ public:
     int ret;
     int nb;
     long dataSize;
-    uint8_t *buffer;
+    uint8_t *buffer_u8;
+    uint16_t *buffer_u16;
     int num;
     int nSample;
 
@@ -79,12 +80,16 @@ public:
 
     int resampleAudio(void **pcmBuffer);
 
+    int decodeAudio(void **pcmBuffer);
+
     int getSoundTouchData(void **sampleBuffer);
 
 public:
     void play();
 
     void pause();
+
+    void resume();
 
     void stop();
 
@@ -93,6 +98,8 @@ public:
     void setPitch(float pitch);
 
     void release();
+
+    void setVolume(int percent);
 };
 
 

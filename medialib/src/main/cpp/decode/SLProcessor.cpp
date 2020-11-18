@@ -41,13 +41,14 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
 SLProcessor::SLProcessor(int sampleRate, Audio *audio) {
     this->sampleRate = sampleRate;
     this->audio = audio;
-    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+//    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
     this->pPCMBuffer = malloc(sampleRate * 2 * 2);
 
 }
 
 SLProcessor::~SLProcessor() {
-
+    stop();
+    release();
 }
 
 void SLProcessor::initialize() {
@@ -355,4 +356,83 @@ int SLProcessor::getPCMDB(char *pcmCate, size_t pcmSize) {
     }
 
     return db;
+}
+
+void SLProcessor::pause() {
+    if (pcmPlayerPlayer != nullptr) {
+        (*pcmPlayerPlayer)->SetPlayState(pcmPlayerPlayer, SL_PLAYSTATE_PAUSED);
+    }
+}
+
+void SLProcessor::stop() {
+    if (pcmPlayerPlayer != nullptr) {
+        (*pcmPlayerPlayer)->SetPlayState(pcmPlayerPlayer, SL_PLAYSTATE_STOPPED);
+    }
+}
+
+void SLProcessor::resume() {
+    if (pcmPlayerPlayer != nullptr) {
+        (*pcmPlayerPlayer)->SetPlayState(pcmPlayerPlayer, SL_PLAYSTATE_PLAYING);
+    }
+}
+
+void SLProcessor::release() {
+
+    if (pcmPlayerObject != nullptr) {
+        (*pcmPlayerObject)->Destroy(pcmPlayerObject);
+        pcmPlayerObject = nullptr;
+        pcmPlayerPlayer = nullptr;
+        pcmPlayerVolume = nullptr;
+        pcmPlayerMute = nullptr;
+        pcmBufferQueue = nullptr;
+    }
+
+    if (outputMixObject != nullptr) {
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject = nullptr;
+        outputMixEnvironmentReverb = nullptr;
+    }
+
+    if (engineObject != nullptr) {
+        (*engineObject)->Destroy(engineObject);
+        engineObject = nullptr;
+        engineEngine = nullptr;
+    }
+
+    if (pPCMBuffer != nullptr) {
+        free(pPCMBuffer);
+        pPCMBuffer = nullptr;
+    }
+
+    if (this->audio != nullptr) {
+        audio = nullptr;
+    }
+}
+
+void SLProcessor::setVolume(int percent) {
+
+    if (pcmPlayerVolume != nullptr) {
+        int div = 0;
+
+        if (percent > 30) {
+            div = 22;
+        } else if (percent > 25) {
+            div = 25;
+        } else if (percent > 20) {
+            div = 28;
+        } else if (percent > 15) {
+            div = 30;
+        } else if (percent > 10) {
+            div = 33;
+        } else if (percent > 5) {
+            div = 35;
+        } else if (percent > 0) {
+            div = 40;
+        } else {
+            div = 100;
+        }
+
+        (*pcmPlayerVolume)->SetVolumeLevel(pcmPlayerVolume, (100 - percent) * -div);
+    }
+
 }

@@ -107,14 +107,35 @@ void _resume(JNIEnv *env, jobject instance) {
 
 void _stop(JNIEnv *env, jobject instance) {
     if (pMediaPlayer) {
-        pMediaPlayer->stop();
+        pMediaPlayer->release();
+        delete pMediaPlayer;
+        pMediaPlayer = nullptr;
+    }
+    if (pCb2j) {
+        delete pCb2j;
+        pCb2j = nullptr;
+    }
+    if (pPlayState) {
+        delete pPlayState;
+        pPlayState = nullptr;
     }
 }
 
 void _release(JNIEnv *env, jobject instance) {
     if (pMediaPlayer) {
         pMediaPlayer->release();
+        delete pMediaPlayer;
+        pMediaPlayer = nullptr;
     }
+    if (pCb2j) {
+        delete pCb2j;
+        pCb2j = nullptr;
+    }
+    if (pPlayState) {
+        delete pPlayState;
+        pPlayState = nullptr;
+    }
+
 }
 
 void _setSpeed(JNIEnv *env, jobject instance, jfloat speed) {

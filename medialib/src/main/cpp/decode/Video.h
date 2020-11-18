@@ -33,6 +33,10 @@ public:
 
     Queue *queue = nullptr;
 
+    pthread_mutex_t mutexDecode;
+
+    int clock;
+
 public:
     Video(PlayState *playState, Callback2Java *cb2j);
 

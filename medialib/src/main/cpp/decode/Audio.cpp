@@ -10,7 +10,8 @@ Audio::Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j, bool isL
     this->cb2j = cb2j;
     this->pSLProcessor = new SLProcessor(sampleRate, this);
     this->queue = new Queue(playState);
-    this->buffer = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2));
+    this->buffer_u8 = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2));
+    this->buffer_u16 = static_cast<uint16_t *>(av_malloc(sampleRate * 2 * 2));
     this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
 //    this->isLiving = isLiving;
     this->isLiving = false;
@@ -76,7 +77,9 @@ int Audio::resampleAudio(void **pcmBuffer) {
             continue;
         }
 
-        //decode
+
+
+        //resample
 
         pthread_mutex_lock(&this->mutexDecode);
 
@@ -117,6 +120,8 @@ int Audio::resampleAudio(void **pcmBuffer) {
                         this->pAVFrame->channel_layout);
             }
 
+
+            //resample
             if (this->pSwrContext == nullptr) {
                 pSwrContext = swr_alloc_set_opts(
                         nullptr,
@@ -148,15 +153,24 @@ int Audio::resampleAudio(void **pcmBuffer) {
             }
 
 
+//            int dst_nb_samples = av_rescale_rnd(
+//                    swr_get_delay(pSwrContext, pAVFrame->sample_rate) + pAVFrame->nb_samples,
+//                    pAVFrame->sample_rate, pAVFrame->sample_rate, AVRounding(1));
 
+//            int dst_nb_samples = sizeof(buffer_u8) / (2 * 2);
+            pAVFrame->linesize[1] = pAVFrame->linesize[0];
 
             this->nb = swr_convert(
                     pSwrContext,
-                    &this->buffer,
+                    &this->buffer_u8,
                     this->pAVFrame->nb_samples,
                     (const uint8_t **) (this->pAVFrame->data),
                     this->pAVFrame->nb_samples
             );
+            for (int i = 0; i < dataSize / 2 + 1; i++) {
+                pSoundTouchBuffer[i] = (buffer_u8[i * 2] | buffer_u8[i * 2 + 1] << 8);
+            }
+
 
             int outChannels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
 
@@ -181,9 +195,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
             if (pSoundTouch != nullptr) {
 
                 if (dataSize > 0) {
-                    for (int i = 0; i < dataSize / 2 + 1; i++) {
-                        pSoundTouchBuffer[i] = (buffer[i * 2] | buffer[i * 2 + 1] << 8);
-                    }
+
                     pSoundTouch->putSamples(pSoundTouchBuffer, nb);
                     nSample = pSoundTouch->receiveSamples(pSoundTouchBuffer, dataSize / 4);
                 } else {
@@ -194,7 +206,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
                     pthread_mutex_unlock(&this->mutexDecode);
                     continue;
                 } else {
-                    if (*buffer == 0) {
+                    if (*buffer_u8 == 0) {
                         nSample = pSoundTouch->receiveSamples(pSoundTouchBuffer, dataSize / 4);
                         if (nSample == 0) {
                             pthread_mutex_unlock(&this->mutexDecode);
@@ -206,7 +218,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
 //                dataSize *= 4;
 
             } else {
-                *pcmBuffer = this->buffer;
+                *pcmBuffer = this->buffer_u8;
             }
             pthread_mutex_unlock(&this->mutexDecode);
             break;
@@ -276,13 +288,94 @@ void Audio::setPitch(float pitch) {
 
 void Audio::release() {
 
+    if (queue != nullptr) {
+        queue->noticeAVPackQueue();
+    }
+
+    pthread_join(threadDecode, nullptr);
+
+    if (queue != nullptr) {
+        delete queue;
+        queue = nullptr;
+    }
+
+    if (pSoundTouch != nullptr) {
+        delete pSoundTouch;
+        pSoundTouch = nullptr;
+    }
+
+    if (pSLProcessor != nullptr) {
+        delete pSLProcessor;
+        pSLProcessor = nullptr;
+    }
+
+    if (playState != nullptr) {
+        playState = nullptr;
+    }
+
+    if (cb2j != nullptr) {
+        cb2j = nullptr;
+    }
+
+    if (pAVCodecContext != nullptr) {
+        pthread_mutex_lock(&mutexDecode);
+        avcodec_close(pAVCodecContext);
+        avcodec_free_context(&pAVCodecContext);
+        pAVCodecContext = nullptr;
+        pthread_mutex_unlock(&mutexDecode);
+    }
+
+    if (buffer_u8 != nullptr) {
+        av_free(buffer_u8);
+        buffer_u8 = nullptr;
+    }
+
+    if (buffer_u16 != nullptr) {
+        av_free(buffer_u16);
+        buffer_u16 = nullptr;
+    }
+
+    if (pSoundTouchBuffer != nullptr) {
+//        av_free(pSoundTouchBuffer);
+        pSoundTouchBuffer = nullptr;
+    }
+
 }
 
 void Audio::stop() {
-
+    if (pSLProcessor != nullptr) {
+        pSLProcessor->stop();
+    }
 }
 
 void Audio::pause() {
-
+    if (pSLProcessor != nullptr) {
+        pSLProcessor->pause();
+    }
 }
+
+void Audio::resume() {
+    if (pSLProcessor != nullptr) {
+        pSLProcessor->resume();
+    }
+}
+
+int Audio::decodeAudio(void **pcmBuffer) {
+
+
+    return 0;
+}
+
+Audio::~Audio() {
+    release();
+    pthread_mutex_destroy(&mutexDecode);
+}
+
+void Audio::setVolume(int percent) {
+    if (pSLProcessor != nullptr) {
+        pSLProcessor->setVolume(percent);
+    }
+}
+
+
 
