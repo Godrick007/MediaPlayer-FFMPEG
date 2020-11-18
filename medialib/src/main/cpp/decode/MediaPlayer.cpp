@@ -75,7 +75,7 @@ void MediaPlayer::resume() {
 }
 
 void MediaPlayer::stop() {
-    release();
+//    release();
 }
 
 void MediaPlayer::release() {

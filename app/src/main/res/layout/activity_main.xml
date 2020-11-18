@@ -43,4 +43,9 @@
         android:layout_height="wrap_content"
         android:text="speed_20" />
 
+    <SeekBar
+        android:id="@+id/sb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>
