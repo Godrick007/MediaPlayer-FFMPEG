@@ -7,6 +7,11 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <godrick.media.medialib.player.MediaPlayerView
+        android:id="@+id/video"
+        android:layout_width="match_parent"
+        android:layout_height="320dp" />
+
     <Button
         android:id="@+id/btn_prepare"
         android:layout_width="match_parent"

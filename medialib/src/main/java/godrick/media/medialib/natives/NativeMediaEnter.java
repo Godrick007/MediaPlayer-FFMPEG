@@ -1,5 +1,7 @@
 package godrick.media.medialib.natives;
 
+import android.annotation.SuppressLint;
+import android.media.MediaCodecList;
 import android.util.Log;
 import android.view.Surface;
 
@@ -66,6 +68,18 @@ public class NativeMediaEnter {
         nSetPlaySpeed(speed);
     }
 
+    public void rendererInit() {
+        nRendererInitialize();
+    }
+
+    public void rendererResize(int width, int height) {
+        nRendererResize(width, height);
+    }
+
+    public void rendererDrawFrame() {
+        nRendererDrawFrame();
+    }
+
     //======================java methods end =================
 
 
@@ -88,6 +102,12 @@ public class NativeMediaEnter {
 
     private native void nSetPlaySpeed(float speed);
 
+    private native void nRendererInitialize();
+
+    private native void nRendererResize(int width, int height);
+
+    private native void nRendererDrawFrame();
+
 
     //======================ndk methods end ==================
 
@@ -108,6 +128,7 @@ public class NativeMediaEnter {
 
     public void cb_MediaPlayerPrepared() {
         Log.e("MediaPlayer", "cb_MediaPlayerPrepared");
+//        nRendererInitialize();
     }
 
     public void cb_MediaPlayerComplete() {
@@ -132,4 +153,36 @@ public class NativeMediaEnter {
 
     //======================ndk callback 2 java end ===============
 
+
+    @SuppressLint("DefaultLocale")
+    public static boolean isSupportCodec(String codecName) {
+
+        boolean supportCode = false;
+
+        int count = MediaCodecList.getCodecCount();
+
+        for (int i = 0; i < count; i++) {
+
+            String[] types = MediaCodecList.getCodecInfoAt(i).getSupportedTypes();
+
+            for (int j = 0; j < types.length; j++) {
+
+//                if(types[j].equals(findVideoCodecName(codecName))){
+//                    supportCode = true;
+//                    break;
+//                }
+
+                Log.e("MediaPlayer", String.format("%s", types[j]));
+
+            }
+
+            if (supportCode) {
+                break;
+            }
+
+        }
+
+
+        return supportCode;
+    }
 }

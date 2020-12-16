@@ -158,7 +158,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
 //                    pAVFrame->sample_rate, pAVFrame->sample_rate, AVRounding(1));
 
 //            int dst_nb_samples = sizeof(buffer_u8) / (2 * 2);
-            pAVFrame->linesize[1] = pAVFrame->linesize[0];
+//            pAVFrame->linesize[1] = pAVFrame->linesize[0];
 
             this->nb = swr_convert(
                     pSwrContext,

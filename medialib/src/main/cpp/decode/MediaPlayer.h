@@ -11,6 +11,7 @@
 #include "PlayState.h"
 #include "Video.h"
 #include "Audio.h"
+#include "../egl/GLESRenderer.h"
 #include <pthread.h>
 
 extern "C" {
@@ -84,6 +85,8 @@ public:
     void initialized();
 
     void startPlay();
+
+    void setRenderer(Renderer *renderer);
 
 private :
 

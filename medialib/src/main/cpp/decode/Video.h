@@ -10,9 +10,14 @@
 #include "../Callback2Java.h"
 #include "Audio.h"
 #include "Queue.h"
+#include "media/NdkMediaCodec.h"
+#include "media/NdkMediaExtractor.h"
+#include "../egl/GLESRenderer.h"
 
 extern "C" {
 #include "../include/libavcodec/avcodec.h"
+#include "../include/libavutil/imgutils.h"
+#include "../include/libswscale/swscale.h"
 };
 
 class Video {
@@ -22,8 +27,8 @@ public:
     Callback2Java *cb2j = nullptr;
 
     int streamIndex = 0;
-    float defaultDelayTime = 0;
-
+    double defaultDelayTime = 0;
+    double delayTime = 0;
 
     Audio *audio = nullptr;
 
@@ -33,9 +38,13 @@ public:
 
     Queue *queue = nullptr;
 
+    pthread_t threadPlay;
     pthread_mutex_t mutexDecode;
 
-    int clock;
+    double clock;
+    Renderer *renderer;
+
+    SwsContext *pSwsContext;
 
 public:
     Video(PlayState *playState, Callback2Java *cb2j);
@@ -44,6 +53,15 @@ public:
 
 public:
     void play();
+
+    double getFrameDiffTime(AVFrame *frame, AVPacket *pkt);
+
+    double getDelayTime(double diff);
+
+    void release();
+
+    void setRenderer(Renderer *renderer);
+
 };
 
 

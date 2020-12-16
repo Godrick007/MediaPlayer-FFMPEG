@@ -17,8 +17,8 @@ extern "C" {
 #include "../include/libavutil/channel_layout.h"
 #include "../include/libavutil/frame.h"
 #include "../include/libavutil/mem.h"
-#include "../include/libavcodec/avcodec.h"
 #include "../include/libavutil/time.h"
+#include "../include/libavcodec/avcodec.h"
 #include "../include/libswresample/swresample.h"
 };
 

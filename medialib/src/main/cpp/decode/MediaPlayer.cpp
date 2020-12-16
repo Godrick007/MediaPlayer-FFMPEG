@@ -243,6 +243,10 @@ int MediaPlayer::getAVCodecContext(AVCodecParameters *param, AVCodecContext **co
         return -1;
     }
 
+    if (LOG_DEBUG) {
+        LOGE("MediaPlayer", "mime is %s", (*codecContext)->codec_descriptor->name);
+    }
+
     return 0;
 
 }
@@ -435,9 +439,22 @@ void MediaPlayer::startPlay() {
     }
 
     exit = true;
+
+    if (audio != nullptr) {
+        audio->stop();
+    }
+
     if (this->cb2j) {
         this->cb2j->cb2j_MediaPlayer_Complete(WORK_THREAD);
     }
+}
+
+void MediaPlayer::setRenderer(Renderer *renderer) {
+    pthread_mutex_lock(&this->mutexInit);
+    if (video) {
+        video->setRenderer(renderer);
+    }
+    pthread_mutex_unlock(&this->mutexInit);
 }
 
 

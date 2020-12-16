@@ -1,0 +1,229 @@
+//
+// Created by Godrick Crown on 2020/12/9.
+//
+
+#include "GLESRenderer.h"
+#include <EGL/egl.h>
+#include <cstdlib>
+
+
+static const char VERTEX_SHADER[] = "#version 100\n"
+                                    "attribute vec4 av_Position;\n"
+                                    "attribute vec2 af_Position;\n"
+                                    "varying vec2 v_texPosition;\n"
+                                    "void main(){\n"
+                                    "    v_texPosition = af_Position;\n"
+                                    "    gl_Position = av_Position;\n"
+                                    "}";
+
+static const char FRAGMENT_SHADER_TEST[] = "#version 100\n"
+                                           "precision mediump float;\n"
+                                           "uniform vec4 v_texPosition;\n"
+                                           "void main(){\n"
+                                           "     gl_FragColor = v_texPosition;\n"
+                                           "}";
+
+
+static const char FRAGMENT_SHADER[] = "#version 100\n"
+                                      "precision mediump float;\n"
+                                      "varying vec2 v_texPosition;\n"
+                                      "uniform sampler2D sampler_y;\n"
+                                      "uniform sampler2D sampler_u;\n"
+                                      "uniform sampler2D sampler_v;\n"
+                                      "void main() {\n"
+                                      "    float y,u,v;\n"
+                                      "    y = texture2D(sampler_y,v_texPosition).r;\n"
+                                      "    u = texture2D(sampler_u,v_texPosition).r- 0.5;\n"
+                                      "    v = texture2D(sampler_v,v_texPosition).r- 0.5;\n"
+                                      "    vec3 rgb;\n"
+                                      "    rgb.r = y + 1.403 * v;\n"
+                                      "    rgb.g = y - 0.344 * u - 0.714 * v;\n"
+                                      "    rgb.b = y + 1.770 * u;\n"
+                                      "    gl_FragColor = vec4(rgb,1);\n"
+                                      "}";
+
+class RendererES2 : public Renderer {
+
+public:
+    RendererES2();
+
+    virtual ~RendererES2();
+
+    bool init();
+
+
+private :
+
+
+};
+
+Renderer *createES2Renderer() {
+    RendererES2 *renderer = new RendererES2;
+    if (!renderer->init()) {
+        delete renderer;
+        return nullptr;
+    }
+    return renderer;
+}
+
+RendererES2::RendererES2() {
+
+}
+
+
+bool RendererES2::init() {
+
+//    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER_TEST);
+    if (!mProgram) {
+        return false;
+    }
+
+    av_Position = glGetAttribLocation(mProgram, "av_Position");
+//    af_Position = glGetUniformLocation(mProgram, "v_texPosition");
+//
+//    glGenBuffers(1, &mVertexPositionBuffer);
+//    glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+
+    if (true) {
+        return true;
+    }
+
+//    af_Position = glGetAttribLocation(mProgram, "af_Position");
+//    sampler_y = glGetUniformLocation(mProgram, "sampler_y");
+//    sampler_u = glGetUniformLocation(mProgram, "sampler_u");
+//    sampler_v = glGetUniformLocation(mProgram, "sampler_v");
+
+    glGenBuffers(1, &mVertexPositionBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &mFragmentPositionBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mFragmentPositionBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(textureData), textureData, GL_STATIC_DRAW);
+
+    glGenTextures(3, textureId_yuv);
+    for (int i = 0; i < 3; i++) {
+        glBindTexture(GL_TEXTURE_2D, textureId_yuv[i]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    return true;
+}
+
+void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
+    this->width_yuv = width;
+    this->height_yuv = height;
+    this->y = y;
+    this->u = u;
+    this->v = v;
+}
+
+
+void Renderer::resize(int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+RendererES2::~RendererES2() {
+    if (eglGetCurrentContext() != mEglContext) {
+        return;
+    }
+
+    glDeleteBuffers(1, &mVertexPositionBuffer);
+    glDeleteBuffers(1, &mFragmentPositionBuffer);
+    glDeleteProgram(mProgram);
+
+    if (y != nullptr) {
+        free(y);
+        y = nullptr;
+    }
+
+    if (u != nullptr) {
+        free(u);
+        u = nullptr;
+    }
+
+    if (v != nullptr) {
+        free(v);
+        v = nullptr;
+    }
+
+}
+
+void Renderer::draw() {
+
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(1, 1, 1, 1);
+//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glUseProgram(mProgram);
+
+    glUniform4f(af_Position, 1, 0, 0, 1);
+
+    glVertexAttribPointer(av_Position, 2, GL_FLOAT, GL_FALSE, 0,
+                          vertexData);
+    glEnableVertexAttribArray(av_Position);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+    if (true) {
+        return;
+    }
+
+
+    if (width_yuv > 0 && height_yuv > 0 && y != nullptr && v != nullptr && v != nullptr) {
+        glUseProgram(mProgram);
+
+        glEnableVertexAttribArray(av_Position);
+        glVertexAttribPointer(av_Position, 2, GL_FLOAT, false, 8,
+                              (const void *) &mVertexPositionBuffer);
+
+
+        glEnableVertexAttribArray(af_Position);
+        glVertexAttribPointer(af_Position, 2, GL_FLOAT, false, 8,
+                              (const void *) &mFragmentPositionBuffer);
+
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glClearColor(1, 0, 0, 1);
+
+
+        if (true) {
+            return;
+        }
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureId_yuv[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width_yuv, height_yuv, 0, GL_LUMINANCE,
+                     GL_UNSIGNED_BYTE, y);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textureId_yuv[1]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width_yuv / 2, height_yuv / 2, 0, GL_LUMINANCE,
+                     GL_UNSIGNED_BYTE, u);
+
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, textureId_yuv[2]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width_yuv / 2, height_yuv / 2, 0, GL_LUMINANCE,
+                     GL_UNSIGNED_BYTE, v);
+
+        glUniform1i(sampler_y, 0);
+        glUniform1i(sampler_u, 1);
+        glUniform1i(sampler_v, 2);
+
+        free(y);
+        free(u);
+        free(v);
+
+        y = nullptr;
+        u = nullptr;
+        v = nullptr;
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+}

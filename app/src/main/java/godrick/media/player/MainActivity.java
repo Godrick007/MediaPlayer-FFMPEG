@@ -1,14 +1,11 @@
 package godrick.media.player;
 
 import android.Manifest;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +13,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 
 import godrick.media.medialib.natives.NativeMediaEnter;
+import godrick.media.medialib.player.MediaPlayerView;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+
+    private MediaPlayerView mp;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -26,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 //        tv.setText(NativeMediaEnter.getInstance().nTest() + " = " + NativeMediaEnter.getInstance().nVersionTest());
 
+
+        mp = findViewById(R.id.video);
 
         Button btnPrepare = findViewById(R.id.btn_prepare);
         Button btnPause = findViewById(R.id.btn_pause);
@@ -50,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_prepare:
-                final File file = new File("sdcard/1.mp3");
+                final File file = new File("sdcard/tree.mp4");
 //                final File file = new File("sdcard/aaaa.wmv");
 //                final File file = new File("sdcard/bbbb.mp4");
 //                final File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaaa.mp4");
@@ -58,7 +62,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.e("MediaPlayer", "file is not exists");
                     return;
                 }
+
+//                String[] ss = MediaUtil.getMediaCodecSupport(file.getAbsolutePath());
+//
+//                Log.e("", "");
+
                 NativeMediaEnter.getInstance().prepare(file.getAbsolutePath(), false);
+//                mp.setRenderer(new GLESRender());
+//                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                    }
+//                }, 1000);
+
                 break;
             case R.id.btn_start:
                 NativeMediaEnter.getInstance().start();
@@ -67,7 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 NativeMediaEnter.getInstance().stop();
                 break;
             case R.id.btn_speed20:
-                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
+//                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
+//                NativeMediaEnter.isSupportCodec("");
                 break;
 
             case R.id.btn_pause:

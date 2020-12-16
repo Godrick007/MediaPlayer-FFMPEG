@@ -15,8 +15,22 @@ elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-
 endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID_STL=c++_shared -fexceptions")
+
+#if (${ANDROID_PLATFORM_LEVEL} LESS 12)
+#    message(FATAL_ERROR "OpenGL 2 is not supported before API level 11 \
+#                      (currently using ${ANDROID_PLATFORM_LEVEL}).")
+#    return()
+#elseif (${ANDROID_PLATFORM_LEVEL} LESS 18)
+#    add_definitions("-DDYNAMIC_ES3")
+#    set(GL3STUB_SRC src/main/cpp/egl/gl3stub.c)
+#    set(OPENGL_LIB GLESv2)
+#else ()
+#    set(OPENGL_LIB GLESv3)
+#endif (${ANDROID_PLATFORM_LEVEL} LESS 12)
+
+
 # cmakelists 设置c++11
 
 # Creates and names a library, sets it as either STATIC
@@ -34,14 +48,24 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         src/main/cpp/MediaEnter.cpp
-        src/main/cpp/util/LogUtil.cpp
         src/main/cpp/Callback2Java.cpp
+
+        src/main/cpp/util/LogUtil.cpp
+        src/main/cpp/util/MediaCodecUtil.cpp
+
         src/main/cpp/decode/MediaPlayer.cpp
         src/main/cpp/decode/PlayState.cpp
         src/main/cpp/decode/Queue.cpp
         src/main/cpp/decode/Audio.cpp
         src/main/cpp/decode/Video.cpp
         src/main/cpp/decode/SLProcessor.cpp
+
+#        src/main/cpp/egl/gl3stub.h
+#        src/main/cpp/egl/gl3stub.c
+        src/main/cpp/egl/GLESRenderer.cpp
+        src/main/cpp/egl/RenderES2.cpp
+        src/main/cpp/egl/RenderES3.cpp
+
 
         )
 
@@ -66,6 +90,7 @@ add_library(
         src/main/cpp/soundtouch/sse_optimized.cpp
         src/main/cpp/soundtouch/TDStretch.cpp
 
+
 )
 
 
@@ -80,7 +105,7 @@ find_library( # Sets the name of the path variable.
 
         # Specifies the name of the NDK library that
         # you want CMake to locate.
-        log )
+        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -143,10 +168,15 @@ set_target_properties(x264
 
 
 target_link_libraries( # Specifies the target library.
+
         MediaPlayer-FFMPEG
         soundtouch
 
         OpenSLES
+        GLESv2
+#        ${OPENGL_LIB}
+
+        egl
         avcodec-58
         avdevice-58
         avfilter-7
@@ -157,7 +187,11 @@ target_link_libraries( # Specifies the target library.
         swscale-5
         x264
 
+        mediandk
         android
         # Links the target library to the log library
         # included in the NDK.
-        ${log-lib} )
+        ${log-lib}
+        z
+        m
+        )
