@@ -25,21 +25,18 @@ extern "C" {
 //
 //extern
 
-const float vertexData[] = {
-//        -1, -1,
-//        1, -1,
-//        -1, 1,
-//        1, 1
-        0.0f, 0.5f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f
+float vertexData[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f, 1.0f,
+        1.0f, 1.0f
 };
 
 const float textureData[] = {
-        0, 1,
-        1, 1,
-        0, 0,
-        1, 0
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 0.0f
 };
 
 
@@ -50,9 +47,15 @@ public:
     int width_yuv;
     int height_yuv;
 
+    int width_surface;
+    int height_surface;
+
     void *y = nullptr;
     void *u = nullptr;
     void *v = nullptr;
+
+    float vertexData[8];
+
 public:
 
     void printGLString(const char *name, GLenum s);
@@ -67,6 +70,10 @@ public:
     virtual ~Renderer();
 
     void resize(int width, int height);
+
+    void setYUVSize(int width, int height);
+
+    void calcTextureData();
 
     void render();
 

@@ -176,7 +176,7 @@ target_link_libraries( # Specifies the target library.
         GLESv2
 #        ${OPENGL_LIB}
 
-        egl
+        EGL
         avcodec-58
         avdevice-58
         avfilter-7
@@ -187,11 +187,9 @@ target_link_libraries( # Specifies the target library.
         swscale-5
         x264
 
-        mediandk
+#        mediandk
         android
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib}
-        z
-        m
         )

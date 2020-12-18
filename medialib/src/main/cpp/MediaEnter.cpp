@@ -82,6 +82,13 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
     const char *_url = env->GetStringUTFChars(url, nullptr);
     LOGE("MediaPlayer", "Open media file %s", _url);
 
+    if (pRenderer != nullptr) {
+        delete pRenderer;
+        pRenderer = nullptr;
+    }
+
+    pRenderer = createES2Renderer();
+
     if (!pCb2j) {
         pCb2j = new Callback2Java(javaVM, env, instance);
     }
@@ -93,6 +100,7 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
     if (!pMediaPlayer) {
         pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url, isLiving);
     }
+
 
     if (pMediaPlayer && pRenderer) {
         pMediaPlayer->setRenderer(pRenderer);
@@ -161,10 +169,10 @@ void _setSpeed(JNIEnv *env, jobject instance, jfloat speed) {
 
 
 void _rendererInit(JNIEnv *env, jobject instance) {
-    if (pRenderer != nullptr) {
-        delete pRenderer;
-        pRenderer = nullptr;
-    }
+//    if (pRenderer != nullptr) {
+//        delete pRenderer;
+//        pRenderer = nullptr;
+//    }
 
     if (LOG_DEBUG) {
 //        pRenderer->printGLString("Version", GL_VERSION);
@@ -182,7 +190,7 @@ void _rendererInit(JNIEnv *env, jobject instance) {
 //    } else {
 //
 //    }
-    pRenderer = createES2Renderer();
+//    pRenderer = createES2Renderer();
 //    if (pMediaPlayer && pRenderer) {
 //        pMediaPlayer->setRenderer(pRenderer);
 //    }
