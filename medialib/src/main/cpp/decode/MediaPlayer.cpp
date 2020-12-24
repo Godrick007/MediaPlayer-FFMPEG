@@ -25,7 +25,7 @@ MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *
 }
 
 MediaPlayer::~MediaPlayer() {
-    release();
+//    release();
     pthread_mutex_destroy(&mutexInit);
     pthread_mutex_destroy(&mutexSeek);
 }

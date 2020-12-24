@@ -123,7 +123,7 @@ void _resume(JNIEnv *env, jobject instance) {
 
 void _stop(JNIEnv *env, jobject instance) {
     if (pMediaPlayer) {
-//        pMediaPlayer->release();
+        pMediaPlayer->release();
         delete pMediaPlayer;
         pMediaPlayer = nullptr;
     }
