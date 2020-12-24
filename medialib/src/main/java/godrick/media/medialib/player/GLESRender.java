@@ -25,7 +25,7 @@ public class GLESRender implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        Log.e("MediaPlayer", "onDrawFrame");
+//        Log.e("MediaPlayer", "onDrawFrame");
         NativeMediaEnter.getInstance().rendererDrawFrame();
     }
 }

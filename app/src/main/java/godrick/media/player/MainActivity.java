@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 NativeMediaEnter.getInstance().stop();
                 break;
             case R.id.btn_speed20:
-//                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
+                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
 //                NativeMediaEnter.isSupportCodec("");
                 break;
 

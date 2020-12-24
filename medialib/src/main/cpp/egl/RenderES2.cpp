@@ -60,8 +60,8 @@ private :
 Renderer *createES2Renderer() {
     RendererES2 *renderer = new RendererES2;
     if (!renderer->init()) {
-        delete renderer;
         return nullptr;
+        delete renderer;
     }
     return renderer;
 }
@@ -142,14 +142,35 @@ void Renderer::calcTextureData() {
     if (width_yuv > 0 && height_yuv > 0 && width_surface > 0 && height_surface > 0) {
 
 
-        if (width_yuv / height_yuv > width_surface / height_surface) {//视频数据比例宽于surface，压缩高度
+        if (width_yuv * 1.0f / height_yuv >
+            width_surface * 1.0f / height_surface) {//视频数据比例宽于surface，压缩高度
+
+            float y = width_surface * 1.0f / width_yuv * height_yuv / height_surface;
+
+            vertexData[0] = -1;
+            vertexData[1] = -y;
+            vertexData[2] = 1;
+            vertexData[3] = -y;
+            vertexData[4] = -1;
+            vertexData[5] = y;
+            vertexData[6] = 1;
+            vertexData[7] = y;
+
+        } else if (width_yuv * 1.0f / height_yuv < width_surface * 1.0f /
+                                                   height_surface) { //视频数据比例窄于surface，压缩宽度
 
 
-
-        } else if (width_yuv / height_yuv < width_surface /
-                                            height_surface) { //视频数据比例窄于surface，压缩宽度
+            float x = height_surface * 1.0f / height_yuv * width_yuv / width_surface;
 
 
+            vertexData[0] = -x;
+            vertexData[1] = -1;
+            vertexData[2] = x;
+            vertexData[3] = -1;
+            vertexData[4] = -x;
+            vertexData[5] = 1;
+            vertexData[6] = x;
+            vertexData[7] = 1;
 
         } else {
             vertexData[0] = -1;

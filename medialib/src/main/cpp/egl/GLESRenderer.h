@@ -25,12 +25,12 @@ extern "C" {
 //
 //extern
 
-float vertexData[] = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f, 1.0f,
-        1.0f, 1.0f
-};
+//float vertexData[] = {
+//        -1.0f, -1.0f,
+//        1.0f, -1.0f,
+//        -1.0f, 1.0f,
+//        1.0f, 1.0f
+//};
 
 const float textureData[] = {
         0.0f, 1.0f,
