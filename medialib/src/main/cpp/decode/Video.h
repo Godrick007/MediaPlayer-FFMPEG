@@ -18,6 +18,7 @@ extern "C" {
 #include "../include/libavcodec/avcodec.h"
 #include "../include/libavutil/imgutils.h"
 #include "../include/libswscale/swscale.h"
+#include "../include/libavutil/common.h"
 };
 
 class Video {
@@ -44,7 +45,7 @@ public:
     double clock;
     Renderer *renderer;
 
-    SwsContext *pSwsContext;
+    SwsContext *pSwsContext = nullptr;
 
 public:
     Video(PlayState *playState, Callback2Java *cb2j);
@@ -61,6 +62,10 @@ public:
     void release();
 
     void setRenderer(Renderer *renderer);
+
+    double fixTimeStamp(double current_pts);
+
+    void dropFrame(double tar_pts);
 
 };
 

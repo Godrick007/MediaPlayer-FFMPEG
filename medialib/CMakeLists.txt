@@ -9,13 +9,13 @@ cmake_minimum_required(VERSION 3.4.1)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
+elseif (COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
+else ()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID_STL=c++_shared -fexceptions")
 
 #if (${ANDROID_PLATFORM_LEVEL} LESS 12)
@@ -52,6 +52,7 @@ add_library( # Sets the name of the library.
 
         src/main/cpp/util/LogUtil.cpp
         src/main/cpp/util/MediaCodecUtil.cpp
+        src/main/cpp/util/EGLUtil.cpp
 
         src/main/cpp/decode/MediaPlayer.cpp
         src/main/cpp/decode/PlayState.cpp
@@ -60,9 +61,8 @@ add_library( # Sets the name of the library.
         src/main/cpp/decode/Video.cpp
         src/main/cpp/decode/SLProcessor.cpp
 
-#        src/main/cpp/egl/gl3stub.h
-#        src/main/cpp/egl/gl3stub.c
-        src/main/cpp/egl/GLESRenderer.cpp
+        #        src/main/cpp/egl/gl3stub.h
+        #        src/main/cpp/egl/gl3stub.c
         src/main/cpp/egl/RenderES2.cpp
         src/main/cpp/egl/RenderES3.cpp
 
@@ -174,7 +174,7 @@ target_link_libraries( # Specifies the target library.
 
         OpenSLES
         GLESv2
-#        ${OPENGL_LIB}
+        #        ${OPENGL_LIB}
 
         EGL
         avcodec-58
@@ -187,7 +187,7 @@ target_link_libraries( # Specifies the target library.
         swscale-5
         x264
 
-#        mediandk
+        #        mediandk
         android
         # Links the target library to the log library
         # included in the NDK.

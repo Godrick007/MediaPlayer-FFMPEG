@@ -45,12 +45,7 @@ static const char FRAGMENT_SHADER[] = "#version 100\n"
 class RendererES2 : public Renderer {
 
 public:
-    RendererES2();
-
-    virtual ~RendererES2();
-
     bool init();
-
 
 private :
 
@@ -66,15 +61,33 @@ Renderer *createES2Renderer() {
     return renderer;
 }
 
-RendererES2::RendererES2() {
-
+Renderer::Renderer() : mEglContext(eglGetCurrentContext()) {
+    eglUtil = new EGLUtil;
 }
 
+Renderer::~Renderer() {
+    if (mEglContext != eglGetCurrentContext()) {
+        return;
+    }
+    LOGD("OpenGLES2.0","~Renderer() has called");
+    glDeleteProgram(mProgram);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0, 0, 0, 1);
+}
+
+
+void Renderer::render() {
+    draw();
+}
 
 bool RendererES2::init() {
 
 //    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    if (eglUtil == nullptr) {
+        return false;
+    }
+
+    mProgram = eglUtil->createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
     if (!mProgram) {
         return false;
     }
@@ -121,6 +134,7 @@ void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
     this->y = y;
     this->u = u;
     this->v = v;
+    drawing = false;
 }
 
 
@@ -138,6 +152,8 @@ void Renderer::setYUVSize(int width, int height) {
 }
 
 void Renderer::calcTextureData() {
+
+
 
     if (width_yuv > 0 && height_yuv > 0 && width_surface > 0 && height_surface > 0) {
 
@@ -194,52 +210,21 @@ void Renderer::calcTextureData() {
 
 }
 
-RendererES2::~RendererES2() {
-    if (eglGetCurrentContext() != mEglContext) {
-        return;
-    }
-
-    glDeleteBuffers(1, &mVertexPositionBuffer);
-    glDeleteBuffers(1, &mFragmentPositionBuffer);
-    glDeleteProgram(mProgram);
-
-    if (y != nullptr) {
-//        free(y);
-        y = nullptr;
-    }
-
-    if (u != nullptr) {
-//        free(u);
-        u = nullptr;
-    }
-
-    if (v != nullptr) {
-//        free(v);
-        v = nullptr;
-    }
-
-}
-
-void Renderer::draw() {
-
-
-//    glClear(GL_COLOR_BUFFER_BIT);
-//    glClearColor(1, 1, 1, 1);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//
-//    glUseProgram(mProgram);
-//
-//    glUniform4f(af_Position, 1, 0, 0, 1);
-//
-//    glVertexAttribPointer(av_Position, 2, GL_FLOAT, GL_FALSE, 0,
-//                          vertexData);
-//    glEnableVertexAttribArray(av_Position);
-//    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//
-//
-//    if (true) {
+//RendererES2::~RendererES2() {
+//    if (eglGetCurrentContext() != mEglContext) {
 //        return;
 //    }
+//
+//    glDeleteBuffers(1, &mVertexPositionBuffer);
+//    glDeleteBuffers(1, &mFragmentPositionBuffer);
+//    glDeleteProgram(mProgram);
+//
+//    glClear(GL_COLOR_BUFFER_BIT);
+//    glClearColor(0, 0, 0, 1);
+//
+//}
+
+void Renderer::draw() {
 
 
     if (width_yuv > 0 && height_yuv > 0 && y != nullptr && v != nullptr && v != nullptr) {
@@ -294,3 +279,5 @@ void Renderer::draw() {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
+
+

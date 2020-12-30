@@ -140,7 +140,7 @@ public class NativeMediaEnter {
     }
 
     public void cb_MediaPlayerProgress(long current, long duration) {
-        Log.e("MediaPlayer", "cb_MediaPlayerProgress current is " + current + "   duration is " + duration);
+//        Log.e("MediaPlayer", "cb_MediaPlayerProgress current is " + current + "   duration is " + duration);
     }
 
     public void cb_MediaPlayerDBValue(double dbValue) {

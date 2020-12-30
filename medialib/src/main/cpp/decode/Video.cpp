@@ -12,26 +12,23 @@ Video::Video(PlayState *playState, Callback2Java *cb2j) {
 }
 
 Video::~Video() {
-    release();
     pthread_mutex_destroy(&this->mutexDecode);
 }
 
 inline void freeAVPacket(AVPacket **pkt) {
     av_packet_free(pkt);
-    av_free(*pkt);
-    *pkt = nullptr;
 }
 
 inline void freeAVFrame(AVFrame **frame) {
     av_frame_free(frame);
-    av_free(*frame);
-    *frame = nullptr;
 }
 
 
 void *threadDecode(void *context) {
 
-    Video *instance = static_cast<Video *>(context);
+//    修改到target宽高
+
+    auto *instance = static_cast<Video *>(context);
 
     while (instance->playState != nullptr && !instance->playState->exit) {
 
@@ -71,14 +68,6 @@ void *threadDecode(void *context) {
             continue;
         }
 
-
-        //media codec -- hardware
-
-
-        //ffmpeg  -- software
-
-
-
         pthread_mutex_lock(&instance->mutexDecode);
 
         if (avcodec_send_packet(instance->pAVCodecContext, pkt) != 0) {
@@ -98,50 +87,89 @@ void *threadDecode(void *context) {
 
         if (frame->format == AV_PIX_FMT_YUV420P) {
 
-            int diff = instance->getFrameDiffTime(frame, nullptr);
-
-            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
+//            int diff = instance->getFrameDiffTime(frame, nullptr);
+//
+//            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
             //opengles render
+
+            double delay = instance->fixTimeStamp(frame->pts);
+            if (delay > 0) {
+                av_usleep(delay);
+            }
+
 
             if (instance->renderer) {
                 instance->renderer->setYUVData(
-                        instance->pAVCodecContext->width,
-                        instance->pAVCodecContext->height,
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
                         frame->data[0],
                         frame->data[1],
                         frame->data[2]
                 );
+
             }
+
+//            if (frame->linesize[0] > 0 && frame->linesize[1] > 0 && frame->linesize[2] > 0) {
+//
+//            } else if (frame->linesize[0] < 0 && frame->linesize[1] < 0 && frame->linesize[2] < 0) {
+//                if (instance->renderer) {
+//                    instance->renderer->setYUVData(
+//                            instance->pAVCodecContext->coded_width,
+//                            instance->pAVCodecContext->coded_height,
+//                            frame->data[0] + frame->linesize[0] * (frame->height - 1),
+//                            frame->data[1] +
+//                            frame->linesize[1] * (AV_CEIL_RSHIFT(frame->height, 1) - 1),
+//                            frame->data[2] +
+//                            frame->linesize[2] * (AV_CEIL_RSHIFT(frame->height, 1) - 1)
+//                    );
+//                }
+//            } else {
+//                freeAVPacket(&pkt);
+//                freeAVFrame(&frame);
+//                pthread_mutex_unlock(&instance->mutexDecode);
+//                continue;
+//            }
 
 
         } else {
 
 
-            AVFrame *frameYUV420P = av_frame_alloc();
-//            int bufferSize = av_image_get_buffer_size(AV_PIX_FMT_YUV420P,
-//                                                      instance->pAVCodecContext->width,
-//                                                      instance->pAVCodecContext->height,
-//                                                      1);
-//
-//            uint8_t *buffer = static_cast<uint8_t *>(av_malloc(bufferSize * sizeof(uint8_t)));
+            AVFrame *dstFrame = av_frame_alloc();
+            int bufferSize = av_image_get_buffer_size(AV_PIX_FMT_YUV420P,
+                                                      instance->pAVCodecContext->coded_width,
+                                                      instance->pAVCodecContext->coded_height,
+                                                      1);
+
+            auto *buffer = static_cast<uint8_t *>(av_malloc(bufferSize * sizeof(uint8_t)));
 
 
-//            av_image_fill_arrays(frameYUV420P->data,
-//                                 frameYUV420P->linesize,
-//                                 frame->data,
-//                                 AV_PIX_FMT_YUV420P,
-//                                 instance->pAVCodecContext->width,
-//                                 instance->pAVCodecContext->height,
-//                                 1);
+            av_image_fill_arrays(dstFrame->data,
+                                 dstFrame->linesize,
+                                 buffer,
+                                 AV_PIX_FMT_YUV420P,
+                                 instance->pAVCodecContext->coded_width,
+                                 instance->pAVCodecContext->coded_height,
+                                 1);
 
 
             if (instance->pSwsContext == nullptr) {
                 instance->pSwsContext = sws_getContext(
-                        instance->pAVCodecContext->width,
-                        instance->pAVCodecContext->height,
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
                         instance->pAVCodecContext->pix_fmt,
-                        instance->pAVCodecContext->width,
-                        instance->pAVCodecContext->height,
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
+                        AV_PIX_FMT_YUV420P, SWS_BICUBIC,
+                        nullptr, nullptr, nullptr
+                );
+            } else {
+                instance->pSwsContext = sws_getCachedContext(
+                        instance->pSwsContext,
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
+                        instance->pAVCodecContext->pix_fmt,
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
                         AV_PIX_FMT_YUV420P, SWS_BICUBIC,
                         nullptr, nullptr, nullptr
                 );
@@ -149,9 +177,10 @@ void *threadDecode(void *context) {
 
 
             if (instance->pSwsContext == nullptr) {
-                av_frame_free(&frameYUV420P);
-                av_free(frameYUV420P);
-//                av_free(buffer);
+                av_frame_free(&dstFrame);
+                av_free(buffer);
+                av_frame_free(&frame);
+                av_packet_free(&pkt);
                 pthread_mutex_unlock(&instance->mutexDecode);
                 continue;
             }
@@ -161,31 +190,29 @@ void *threadDecode(void *context) {
                       frame->linesize,
                       0,
                       frame->height,
-                      frameYUV420P->data,
-                      frameYUV420P->linesize
+                      dstFrame->data,
+                      dstFrame->linesize
             );
 
-            av_usleep(instance->getDelayTime(frame->best_effort_timestamp) * AV_TIME_BASE);
+            int diff = instance->getFrameDiffTime(dstFrame, nullptr);
+
+            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
 
             //render
 
             if (instance->renderer) {
                 instance->renderer->setYUVData(
-                        instance->pAVCodecContext->width,
-                        instance->pAVCodecContext->height,
-                        frameYUV420P->data[0],
-                        frameYUV420P->data[1],
-                        frameYUV420P->data[2]
+                        instance->pAVCodecContext->coded_width,
+                        instance->pAVCodecContext->coded_height,
+                        dstFrame->data[0],
+                        dstFrame->data[1],
+                        dstFrame->data[2]
                 );
             }
 
 
-            av_frame_free(&frameYUV420P);
-            av_free(frameYUV420P);
-            //av_free(buffer);
-//
-
-
+            av_frame_free(&frame);
+            av_free(buffer);
         }
 
         freeAVFrame(&frame);
@@ -193,12 +220,10 @@ void *threadDecode(void *context) {
         pthread_mutex_unlock(&instance->mutexDecode);
 
     }
-
+    return nullptr;
 }
 
 void Video::play() {
-
-
     if (this->playState != nullptr && !this->playState->exit) {
         pthread_create(&threadPlay, nullptr, threadDecode, this);
     }
@@ -238,7 +263,9 @@ double Video::getDelayTime(double diff) {
         delayTime = defaultDelayTime;
     }
 
-
+    if (LOG_DEBUG) {
+        LOGD("MediaPlayer", "delay time is %e", delayTime);
+    }
     return delayTime;
 }
 
@@ -264,13 +291,15 @@ double Video::getFrameDiffTime(AVFrame *frame, AVPacket *pkt) {
     }
 
     double diff = audio->clock - clock;
-
+    if (LOG_DEBUG) {
+        LOGD("MediaPlayer", "diff time is %e", diff);
+    }
     return diff;
 }
 
 void Video::setRenderer(Renderer *renderer) {
-//    this->renderer = renderer;
-//    renderer->setYUVSize(this->pAVCodecContext->width, this->pAVCodecContext->height);
+    this->renderer = renderer;
+    renderer->setYUVSize(this->pAVCodecContext->width, this->pAVCodecContext->height);
 }
 
 void Video::release() {
@@ -287,7 +316,6 @@ void Video::release() {
 
     if (pSwsContext != nullptr) {
         sws_freeContext(pSwsContext);
-        av_free(pSwsContext);
         pSwsContext = nullptr;
     }
 
@@ -295,7 +323,6 @@ void Video::release() {
         pthread_mutex_lock(&this->mutexDecode);
         avcodec_close(pAVCodecContext);
         avcodec_free_context(&this->pAVCodecContext);
-        av_free(pAVCodecContext);
         pAVCodecContext = nullptr;
         pthread_mutex_unlock(&this->mutexDecode);
     }
@@ -311,3 +338,25 @@ void Video::release() {
 
 
 }
+
+double Video::fixTimeStamp(double current_pts) {
+
+    double diff = current_pts * av_q2d(this->timeBase) - audio->clock;
+    if (diff <= 0) {
+        //do nothing just render
+    } else if (diff >= 0) {
+
+        return diff;
+    }
+    if (LOG_DEBUG) {
+        LOGD("MediaPlayer", "diff time is %e", diff);
+    }
+    return 0;
+}
+
+void Video::dropFrame(double) {
+
+
+}
+
+

@@ -24,7 +24,7 @@ public:
     static const int THRESHOLD_SLEEP_10 = 1000 * 10;
     static const int THRESHOLD_SLEEP_100 = 1000 * 100;
     static const int THRESHOLD_SLEEP_500 = 1000 * 500;
-    static const int THRESHOLD_QUEUE_LIMIT = 100;
+    static const int THRESHOLD_QUEUE_LIMIT = 40;
 
 public:
     bool exit;

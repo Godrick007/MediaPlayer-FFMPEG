@@ -101,10 +101,10 @@ void MediaPlayer::release() {
         audio = nullptr;
     }
 
-//    if (video != nullptr) {
-//        delete video;
-//        video = nullptr;
-//    }
+    if (video != nullptr) {
+        delete video;
+        video = nullptr;
+    }
 
     if (pAVFormatContext != nullptr) {
         avformat_close_input(&pAVFormatContext);
@@ -305,17 +305,17 @@ void MediaPlayer::initialized() {
         } else if (pAVFormatContext->streams[i]->codecpar->codec_type ==
                    AVMEDIA_TYPE_VIDEO) {//video stream
             if (this->video == nullptr) {
-//                this->video = new Video(this->playState, this->cb2j);
-//                this->video->streamIndex = i;
-//                this->video->timeBase = pAVFormatContext->streams[i]->time_base;
-//                this->video->pAVCodecParameters = pAVFormatContext->streams[i]->codecpar;
-//
-//                int num = pAVFormatContext->streams[i]->avg_frame_rate.num;
-//                int den = pAVFormatContext->streams[i]->avg_frame_rate.den;
-//                if (num != 0 && den != 0) {
-//                    int fps = num / den;
-//                    video->defaultDelayTime = 1.0f / fps;
-//                }
+                this->video = new Video(this->playState, this->cb2j);
+                this->video->streamIndex = i;
+                this->video->timeBase = pAVFormatContext->streams[i]->time_base;
+                this->video->pAVCodecParameters = pAVFormatContext->streams[i]->codecpar;
+
+                int num = pAVFormatContext->streams[i]->avg_frame_rate.num;
+                int den = pAVFormatContext->streams[i]->avg_frame_rate.den;
+                if (num != 0 && den != 0) {
+                    int fps = num / den;
+                    video->defaultDelayTime = 1.0f / fps;
+                }
             }
         }
     }
@@ -410,11 +410,11 @@ void MediaPlayer::startPlay() {
                     this->audio->queue->putAVPacket(pkt);
                 }
 
-            } /*else if (pkt->stream_index == this->video->streamIndex) {//video pkt
+            } else if (pkt->stream_index == this->video->streamIndex) {//video pkt
                 if (video != nullptr) {
                     this->video->queue->putAVPacket(pkt);
                 }
-            }*/ else {
+            } else {
                 av_packet_free(&pkt);
                 av_free(pkt);
             }

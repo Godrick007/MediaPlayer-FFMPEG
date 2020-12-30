@@ -7,6 +7,7 @@
 
 
 #include "../util/LogUtil.h"
+#include "../util/EGLUtil.h"
 
 
 extern "C" {
@@ -43,12 +44,18 @@ const float textureData[] = {
 class Renderer {
 
 public:
+    Renderer();
+
     ANativeWindow *window = nullptr;
     int width_yuv;
     int height_yuv;
 
     int width_surface;
     int height_surface;
+
+    EGLUtil *eglUtil = nullptr;
+
+    bool drawing = false;
 
     void *y = nullptr;
     void *u = nullptr;
@@ -57,14 +64,6 @@ public:
     float vertexData[8];
 
 public:
-
-    void printGLString(const char *name, GLenum s);
-
-    bool checkGLError(const char *funcName);
-
-    GLuint createShader(GLenum shaderType, const char *src);
-
-    GLuint createProgram(const char *vertexSrc, const char *fragmentSrc);
 
 
     virtual ~Renderer();
@@ -75,7 +74,7 @@ public:
 
     void calcTextureData();
 
-    void render();
+    virtual void render();
 
     void setSurface(ANativeWindow *window);
 
@@ -83,8 +82,6 @@ public:
 
 
 protected:
-    Renderer();
-
     void draw();
 
     const EGLContext mEglContext;

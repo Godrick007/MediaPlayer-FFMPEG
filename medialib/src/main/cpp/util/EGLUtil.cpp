@@ -1,29 +1,16 @@
 //
-// Created by Godrick Crown on 2020/12/15.
+// Created by Godrick Crown on 2020/12/24.
 //
 
-#include "GLESRenderer.h"
-
-Renderer::Renderer() :
-        mEglContext(eglGetCurrentContext()) {}
-
-Renderer::~Renderer() {
-
-}
+#include "EGLUtil.h"
 
 
-void Renderer::render() {
-    draw();
-}
-
-
-
-void Renderer::printGLString(const char *name, GLenum s) {
+void EGLUtil::printGLString(const char *name, GLenum s) {
     const char *v = (const char *) glGetString(s);
     LOGD("MediaPlayer", "GL - %s: %s", name, v);
 }
 
-bool Renderer::checkGLError(const char *funcName) {
+bool EGLUtil::checkGLError(const char *funcName) {
     GLuint err = glGetError();
     if (err == GL_NO_ERROR) {
         return true;
@@ -31,7 +18,7 @@ bool Renderer::checkGLError(const char *funcName) {
     return false;
 }
 
-GLuint Renderer::createShader(GLenum shaderType, const char *src) {
+GLuint EGLUtil::createShader(GLenum shaderType, const char *src) {
 
     GLuint shader = glCreateShader(shaderType);
     if (!shader) {
@@ -63,7 +50,7 @@ GLuint Renderer::createShader(GLenum shaderType, const char *src) {
 }
 
 
-GLuint Renderer::createProgram(const char *vertexSrc, const char *fragmentSrc) {
+GLuint EGLUtil::createProgram(const char *vertexSrc, const char *fragmentSrc) {
     GLuint vertexShader = 0;
     GLuint fragmentShader = 0;
     GLuint program = 0;
