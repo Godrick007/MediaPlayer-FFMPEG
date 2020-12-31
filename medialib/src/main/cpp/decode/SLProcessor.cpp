@@ -15,7 +15,7 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
 //                reinterpret_cast<void **>(&instance->pPCMBuffer));
         if (bufferSize > 0) {
             instance->audio->clock += bufferSize / ((double) instance->audio->sampleRate * 2 * 2);
-            if (instance->audio->clock - instance->audio->lastTime >= 100) {
+            if (instance->audio->clock - instance->audio->lastTime >= 0.1) {
                 instance->audio->lastTime = instance->audio->clock;
                 instance->audio->cb2j->cb2j_MediaPlayer_Progress(WORK_THREAD,
                                                                  instance->audio->clock,

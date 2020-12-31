@@ -297,9 +297,11 @@ void MediaPlayer::initialized() {
                                         this->cb2j, this->isLiving);
                 this->audio->streamIndex = i;
                 this->audio->pAVCodecParameters = pAVFormatContext->streams[i]->codecpar;
-                this->audio->duration = pAVFormatContext->duration / AV_TIME_BASE * 1000;
-                this->audio->timeBase = {pAVFormatContext->streams[i]->time_base.num * 1000,
-                                         pAVFormatContext->streams[i]->time_base.den};
+//                this->audio->duration = pAVFormatContext->duration / AV_TIME_BASE * 1000;
+                this->audio->duration = pAVFormatContext->duration / AV_TIME_BASE;
+//                this->audio->timeBase = {pAVFormatContext->streams[i]->time_base.num * 1000,
+//                                         pAVFormatContext->streams[i]->time_base.den};
+                this->audio->timeBase = pAVFormatContext->streams[i]->time_base;
                 this->duration = audio->duration;
             }
         } else if (pAVFormatContext->streams[i]->codecpar->codec_type ==

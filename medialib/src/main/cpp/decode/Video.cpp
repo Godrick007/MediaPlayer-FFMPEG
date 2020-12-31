@@ -94,7 +94,7 @@ void *threadDecode(void *context) {
 
             double delay = instance->fixTimeStamp(frame->pts);
             if (delay > 0) {
-                av_usleep(delay);
+                av_usleep(delay * AV_TIME_BASE);
             }
 
 
@@ -342,15 +342,24 @@ void Video::release() {
 double Video::fixTimeStamp(double current_pts) {
 
     double diff = current_pts * av_q2d(this->timeBase) - audio->clock;
-    if (diff <= 0) {
-        //do nothing just render
-    } else if (diff >= 0) {
+    if (diff <= 0) { //video slow
+
+    } else if (diff >= 0) { //video fast
+//        double delay = FFMIN(defaultDelayTime, diff);
+//        return delay;
+        if (LOG_DEBUG) {
+            LOGE("MediaPlayer", "a pts = %lf, v pts = %lf, diff = %lf", audio->clock,
+                 current_pts * av_q2d(this->timeBase), diff);
+        }
 
         return diff;
     }
-    if (LOG_DEBUG) {
-        LOGD("MediaPlayer", "diff time is %e", diff);
-    }
+//    if (LOG_DEBUG) {
+//        LOGD("MediaPlayer", "diff time is %e", diff);
+//    }
+
+
+
     return 0;
 }
 

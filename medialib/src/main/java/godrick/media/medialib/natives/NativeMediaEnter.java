@@ -136,7 +136,7 @@ public class NativeMediaEnter {
     }
 
     public void cb_MediaPlayerLoading(boolean isLoading) {
-        Log.e("MediaPlayer", "cb_MediaPlayerLoading = " + isLoading);
+//        Log.e("MediaPlayer", "cb_MediaPlayerLoading = " + isLoading);
     }
 
     public void cb_MediaPlayerProgress(long current, long duration) {
