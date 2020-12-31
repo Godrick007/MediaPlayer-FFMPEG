@@ -65,7 +65,7 @@ public:
 
     double fixTimeStamp(double current_pts);
 
-    void dropFrame(double tar_pts);
+    void dropFrames(double tar_pts);
 
 };
 

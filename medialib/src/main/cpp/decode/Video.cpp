@@ -194,9 +194,13 @@ void *threadDecode(void *context) {
                       dstFrame->linesize
             );
 
-            int diff = instance->getFrameDiffTime(dstFrame, nullptr);
+//            int diff = instance->getFrameDiffTime(dstFrame, nullptr);
+//
+//            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
 
-            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
+            double diff = instance->fixTimeStamp(dstFrame->pts);
+
+            av_usleep(diff * AV_TIME_BASE);
 
             //render
 
@@ -347,10 +351,10 @@ double Video::fixTimeStamp(double current_pts) {
     } else if (diff >= 0) { //video fast
 //        double delay = FFMIN(defaultDelayTime, diff);
 //        return delay;
-        if (LOG_DEBUG) {
-            LOGE("MediaPlayer", "a pts = %lf, v pts = %lf, diff = %lf", audio->clock,
-                 current_pts * av_q2d(this->timeBase), diff);
-        }
+//        if (LOG_DEBUG) {
+//            LOGE("MediaPlayer", "a pts = %lf, v pts = %lf, diff = %lf", audio->clock,
+//                 current_pts * av_q2d(this->timeBase), diff);
+//        }
 
         return diff;
     }
@@ -363,7 +367,7 @@ double Video::fixTimeStamp(double current_pts) {
     return 0;
 }
 
-void Video::dropFrame(double) {
+void Video::dropFrames(double) {
 
 
 }
