@@ -131,7 +131,7 @@ bool RendererES2::init() {
 void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
 
 
-    LOGI("java_count", "set yuv data %ld", count++);
+//    LOGI("java_count", "set yuv data %ld", count++);
     this->width_yuv = width;
     this->height_yuv = height;
     this->y = y;

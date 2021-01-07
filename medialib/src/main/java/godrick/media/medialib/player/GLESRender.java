@@ -33,7 +33,7 @@ public class GLESRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     @Override
     public void onDrawFrame(GL10 gl) {
 //        Log.e("MediaPlayer", "onDrawFrame");
-        Log.e("java_count", "On draw frame " + count++);
+//        Log.e("java_count", "On draw frame " + count++);
 
         NativeMediaEnter.getInstance().rendererDrawFrame();
     }

@@ -114,47 +114,6 @@ void *threadDecode(void *context) {
             }
 
 
-
-
-//            if (instance->fp_yuv) {
-//                fwrite(frame->data[0], 1,
-//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height,
-//                       instance->fp_yuv);
-//                fwrite(frame->data[1], 1,
-//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height /
-//                       4,
-//                       instance->fp_yuv);
-//                fwrite(frame->data[2], 1,
-//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height /
-//                       4,
-//                       instance->fp_yuv);
-//            }
-
-
-
-
-//            if (frame->linesize[0] > 0 && frame->linesize[1] > 0 && frame->linesize[2] > 0) {
-//
-//            } else if (frame->linesize[0] < 0 && frame->linesize[1] < 0 && frame->linesize[2] < 0) {
-//                if (instance->renderer) {
-//                    instance->renderer->setYUVData(
-//                            instance->pAVCodecContext->coded_width,
-//                            instance->pAVCodecContext->coded_height,
-//                            frame->data[0] + frame->linesize[0] * (frame->height - 1),
-//                            frame->data[1] +
-//                            frame->linesize[1] * (AV_CEIL_RSHIFT(frame->height, 1) - 1),
-//                            frame->data[2] +
-//                            frame->linesize[2] * (AV_CEIL_RSHIFT(frame->height, 1) - 1)
-//                    );
-//                }
-//            } else {
-//                freeAVPacket(&pkt);
-//                freeAVFrame(&frame);
-//                pthread_mutex_unlock(&instance->mutexDecode);
-//                continue;
-//            }
-
-
         } else {
 
 
@@ -218,13 +177,13 @@ void *threadDecode(void *context) {
                       dstFrame->linesize
             );
 
-//            int diff = instance->getFrameDiffTime(dstFrame, nullptr);
+            int diff = instance->getFrameDiffTime(dstFrame, nullptr);
+
+            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
+
+//            double diff = instance->fixTimeStamp(dstFrame->pts);
 //
-//            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
-
-            double diff = instance->fixTimeStamp(dstFrame->pts);
-
-            av_usleep(diff * AV_TIME_BASE);
+//            av_usleep(diff * AV_TIME_BASE);
 
             //render
 
@@ -236,6 +195,7 @@ void *threadDecode(void *context) {
                         dstFrame->data[1],
                         dstFrame->data[2]
                 );
+                instance->cb2j->cb2j_MediaPlayer_Request_Render(WORK_THREAD);
             }
 
 
