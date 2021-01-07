@@ -63,6 +63,8 @@ public:
 
     float vertexData[8];
 
+    long count = 0;
+
 public:
 
 

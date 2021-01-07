@@ -5,6 +5,8 @@ import android.media.MediaCodecList;
 import android.util.Log;
 import android.view.Surface;
 
+import godrick.media.medialib.itfs.IRequestRenderListener;
+
 public class NativeMediaEnter {
 
     static {
@@ -22,6 +24,8 @@ public class NativeMediaEnter {
     }
 
     private static NativeMediaEnter instance;
+
+    private IRequestRenderListener iRequestRenderListener;
 
     private NativeMediaEnter() {
     }
@@ -151,6 +155,12 @@ public class NativeMediaEnter {
         Log.e("MediaPlayer", "cb_MediaPlayerSLInitError code = " + errorCode + " ------ msg = " + msg);
     }
 
+    public void cb_MediaRequestRenderer() {
+        if (iRequestRenderListener != null) {
+            iRequestRenderListener.requestRenderer();
+        }
+    }
+
     //======================ndk callback 2 java end ===============
 
 
@@ -184,5 +194,9 @@ public class NativeMediaEnter {
 
 
         return supportCode;
+    }
+
+    public void setRequestRenderListener(IRequestRenderListener iRequestRenderListener) {
+        this.iRequestRenderListener = iRequestRenderListener;
     }
 }

@@ -10,6 +10,8 @@ public class MediaPlayerView extends GLSurfaceView {
 
     private String playUrl;
 
+    private GLESRender render;
+
     public MediaPlayerView(Context context) {
         this(context, null);
     }
@@ -24,8 +26,12 @@ public class MediaPlayerView extends GLSurfaceView {
 
     private void init() {
         setEGLContextClientVersion(2);
-        setRenderer(new GLESRender());
 
+        render = new GLESRender();
+
+        setRenderer(render);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        render.setOnRenderListener(this::requestRender);
     }
 
     public void setMediaUrl(String url, boolean isLiving) {

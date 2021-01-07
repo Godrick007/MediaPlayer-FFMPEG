@@ -30,6 +30,7 @@ Callback2Java::Callback2Java(JavaVM *jvm, JNIEnv *env, jobject jobj) {
     mid_MediaPlayerDBValue = env->GetMethodID(clz, "cb_MediaPlayerDBValue", "(D)V");
     mid_MediaPlayerSLInitError = env->GetMethodID(clz, "cb_MediaPlayerSLInitError",
                                                   "(ILjava/lang/String;)V");
+    mid_MediaRequestRender = env->GetMethodID(clz, "cb_MediaRequestRenderer", "()V");
 }
 
 Callback2Java::~Callback2Java() = default;
@@ -217,6 +218,24 @@ Callback2Java::cb2j_MediaPlayer_SL_InitError(CallbackThread thread, int errorCod
         env->DeleteLocalRef(str);
         jvm->DetachCurrentThread();
     }
+}
+
+void Callback2Java::cb2j_MediaPlayer_Request_Render(CallbackThread thread) {
+
+    if (thread == MAIN_THREAD) {
+        this->env->CallVoidMethod(jobj, mid_MediaRequestRender);
+    } else {
+        JNIEnv *env;
+        if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGD("MediaPlayer", "media prepared");
+            }
+            return;
+        }
+        env->CallVoidMethod(this->jobj, mid_MediaRequestRender);
+        jvm->DetachCurrentThread();
+    }
+
 }
 
 

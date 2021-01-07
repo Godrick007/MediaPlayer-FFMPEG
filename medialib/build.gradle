@@ -21,7 +21,14 @@ android {
             }
         }
 
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+
     }
+
+
 
     buildTypes {
         release {
@@ -77,6 +84,10 @@ android {
         pickFirst 'lib/x86_64/libswresample-3.so'
         pickFirst 'lib/x86_64/libswscale-5.so'
         pickFirst 'lib/x86_64/libx264.so'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 }

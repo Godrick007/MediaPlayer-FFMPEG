@@ -1,5 +1,6 @@
 package godrick.media.medialib.player;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
@@ -8,8 +9,14 @@ import javax.microedition.khronos.opengles.GL10;
 
 import godrick.media.medialib.natives.NativeMediaEnter;
 
-public class GLESRender implements GLSurfaceView.Renderer {
+public class GLESRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
+    private long count = 0;
+    private OnRenderListener onRenderListener;
+
+    public void setOnRenderListener(OnRenderListener onRenderListener) {
+        this.onRenderListener = onRenderListener;
+    }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -26,6 +33,19 @@ public class GLESRender implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
 //        Log.e("MediaPlayer", "onDrawFrame");
+        Log.e("java_count", "On draw frame " + count++);
+
         NativeMediaEnter.getInstance().rendererDrawFrame();
+    }
+
+    @Override
+    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        if (onRenderListener != null) {
+            onRenderListener.onRender();
+        }
+    }
+
+    public interface OnRenderListener {
+        void onRender();
     }
 }

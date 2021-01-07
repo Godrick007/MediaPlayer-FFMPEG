@@ -28,6 +28,7 @@ public:
     jmethodID mid_MediaPlayerProgress;
     jmethodID mid_MediaPlayerDBValue;
     jmethodID mid_MediaPlayerSLInitError;
+    jmethodID mid_MediaRequestRender;
     /**
      * members
      */
@@ -71,6 +72,7 @@ public:
 
     void cb2j_MediaPlayer_SL_InitError(CallbackThread thread, int errorCode, const char *msg);
 
+    void cb2j_MediaPlayer_Request_Render(CallbackThread thread);
 };
 
 

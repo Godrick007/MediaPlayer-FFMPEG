@@ -69,7 +69,7 @@ Renderer::~Renderer() {
     if (mEglContext != eglGetCurrentContext()) {
         return;
     }
-    LOGD("OpenGLES2.0","~Renderer() has called");
+    LOGD("OpenGLES2.0", "~Renderer() has called");
     glDeleteProgram(mProgram);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0, 0, 0, 1);
@@ -129,6 +129,9 @@ bool RendererES2::init() {
 }
 
 void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
+
+
+    LOGI("java_count", "set yuv data %ld", count++);
     this->width_yuv = width;
     this->height_yuv = height;
     this->y = y;
@@ -152,7 +155,6 @@ void Renderer::setYUVSize(int width, int height) {
 }
 
 void Renderer::calcTextureData() {
-
 
 
     if (width_yuv > 0 && height_yuv > 0 && width_surface > 0 && height_surface > 0) {

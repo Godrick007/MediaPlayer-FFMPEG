@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 
+import godrick.media.medialib.itfs.IRequestRenderListener;
 import godrick.media.medialib.natives.NativeMediaEnter;
 import godrick.media.medialib.player.MediaPlayerView;
 
@@ -31,6 +32,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mp = findViewById(R.id.video);
 
+        NativeMediaEnter.getInstance().setRequestRenderListener(new IRequestRenderListener() {
+            @Override
+            public void requestRenderer() {
+                mp.requestRender();
+            }
+        });
+
         Button btnPrepare = findViewById(R.id.btn_prepare);
         Button btnPause = findViewById(R.id.btn_pause);
         Button btnResume = findViewById(R.id.btn_resume);
@@ -46,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnStop.setOnClickListener(this);
         btnSpeed20.setOnClickListener(this);
 
-        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
 
     }
 

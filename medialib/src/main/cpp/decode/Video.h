@@ -47,6 +47,9 @@ public:
 
     SwsContext *pSwsContext = nullptr;
 
+//    FILE *fp_yuv;
+//    const char *output = "/sdcard/output.yuv";
+
 public:
     Video(PlayState *playState, Callback2Java *cb2j);
 

@@ -87,15 +87,19 @@ void *threadDecode(void *context) {
 
         if (frame->format == AV_PIX_FMT_YUV420P) {
 
-//            int diff = instance->getFrameDiffTime(frame, nullptr);
-//
-//            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
-            //opengles render
+            int diff = instance->getFrameDiffTime(frame, nullptr);
+            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
 
-            double delay = instance->fixTimeStamp(frame->pts);
-            if (delay > 0) {
-                av_usleep(delay * AV_TIME_BASE);
-            }
+
+//            double delay = instance->fixTimeStamp(frame->pts);
+//            if (delay > 0) {
+//                av_usleep(delay * AV_TIME_BASE);
+//            }
+
+//            av_usleep(instance->defaultDelayTime * AV_TIME_BASE);
+
+//opengles render
+
 
 
             if (instance->renderer) {
@@ -106,8 +110,28 @@ void *threadDecode(void *context) {
                         frame->data[1],
                         frame->data[2]
                 );
-
+                instance->cb2j->cb2j_MediaPlayer_Request_Render(WORK_THREAD);
             }
+
+
+
+
+//            if (instance->fp_yuv) {
+//                fwrite(frame->data[0], 1,
+//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height,
+//                       instance->fp_yuv);
+//                fwrite(frame->data[1], 1,
+//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height /
+//                       4,
+//                       instance->fp_yuv);
+//                fwrite(frame->data[2], 1,
+//                       instance->pAVCodecContext->coded_width * instance->pAVCodecContext->coded_height /
+//                       4,
+//                       instance->fp_yuv);
+//            }
+
+
+
 
 //            if (frame->linesize[0] > 0 && frame->linesize[1] > 0 && frame->linesize[2] > 0) {
 //
@@ -228,6 +252,13 @@ void *threadDecode(void *context) {
 }
 
 void Video::play() {
+
+
+//    fp_yuv = fopen(output, "wb+");
+//
+//    LOGD("MediaPlayer", "fopen error with %d", errno);
+
+
     if (this->playState != nullptr && !this->playState->exit) {
         pthread_create(&threadPlay, nullptr, threadDecode, this);
     }
@@ -303,10 +334,13 @@ double Video::getFrameDiffTime(AVFrame *frame, AVPacket *pkt) {
 
 void Video::setRenderer(Renderer *renderer) {
     this->renderer = renderer;
-    renderer->setYUVSize(this->pAVCodecContext->width, this->pAVCodecContext->height);
+    renderer->setYUVSize(this->pAVCodecContext->coded_width, this->pAVCodecContext->coded_height);
 }
 
 void Video::release() {
+
+//    fclose(fp_yuv);
+
     if (queue != nullptr) {
         queue->noticeAVPackQueue();
     }
