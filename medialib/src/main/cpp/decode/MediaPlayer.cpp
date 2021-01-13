@@ -12,16 +12,25 @@ int AVContextInterruptCallback(void *context) {
     return 0;
 }
 
+MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, Renderer *render) {
+    this->playState = playState;
+    this->cb2j = cb2j;
+    this->render = render;
+    pthread_mutex_init(&mutexInit, nullptr);
+    pthread_mutex_init(&mutexSeek, nullptr);
+}
 
 MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url,
+                         Renderer *render,
                          bool isLiving) {
     this->playState = playState;
     this->cb2j = cb2j;
     this->url = url;
+    this->render = render;
     this->isLiving = isLiving;
     pthread_mutex_init(&mutexInit, nullptr);
     pthread_mutex_init(&mutexSeek, nullptr);
-    prepare();
+//    prepare();
 }
 
 MediaPlayer::~MediaPlayer() {
@@ -342,9 +351,11 @@ void MediaPlayer::initialized() {
 
     if (this->video != nullptr) {
         ret = getAVCodecContext(this->video->pAVCodecParameters, &this->video->pAVCodecContext);
+
         if (ret < 0) {
             return;
         }
+        this->video->setRenderer(this->render);
     }
 
     if (playState && !playState->exit) {
@@ -467,6 +478,12 @@ void MediaPlayer::setRenderer(Renderer *renderer) {
     }
     pthread_mutex_unlock(&this->mutexInit);
 }
+
+void MediaPlayer::setUrl(const char *url) {
+    this->url = url;
+}
+
+
 
 
 

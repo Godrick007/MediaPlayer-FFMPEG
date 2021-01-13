@@ -300,7 +300,9 @@ double Video::getFrameDiffTime(AVFrame *frame, AVPacket *pkt) {
 
 void Video::setRenderer(Renderer *renderer) {
     this->renderer = renderer;
-    renderer->setYUVSize(this->pAVCodecContext->coded_width, this->pAVCodecContext->coded_height);
+    if (renderer != nullptr)
+        renderer->setYUVSize(this->pAVCodecContext->coded_width,
+                             this->pAVCodecContext->coded_height);
 }
 
 void Video::release() {

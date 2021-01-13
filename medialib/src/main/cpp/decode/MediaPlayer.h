@@ -28,6 +28,8 @@ public:
     pthread_t threadInit;
     PlayState *playState = nullptr;
     AVFormatContext *pAVFormatContext = nullptr;
+    Renderer *render = nullptr;
+
 
     pthread_mutex_t mutexInit;
 
@@ -47,13 +49,18 @@ public:
     int ret;
 
 public:
-    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url, bool isLiving);
+
+    MediaPlayer(PlayState *playState, Callback2Java *cb2j, Renderer *render);
+
+    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url,  Renderer *render,bool isLiving);
 
     ~MediaPlayer();
 
 public:
-    void prepare();
 
+    void setUrl(const char *url);
+
+    void prepare();
 
     void setAudio(Audio *audio);
 

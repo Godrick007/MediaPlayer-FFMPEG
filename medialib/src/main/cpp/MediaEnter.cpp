@@ -91,13 +91,20 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
     }
 
     if (!pMediaPlayer) {
-        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url, isLiving);
-    }
+        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, _url, pRenderer, isLiving);
+    } else {
+        pMediaPlayer->setUrl(_url);
+        if (pMediaPlayer->render == nullptr) {
+            pMediaPlayer->setRenderer(pRenderer);
+        }
 
-
-    if (pMediaPlayer && pRenderer) {
-        pMediaPlayer->setRenderer(pRenderer);
     }
+    LOGD("MediaPlayer", "renderer is %s", pRenderer == nullptr ? "null" : "not null");
+    pMediaPlayer->prepare();
+
+//    if (pMediaPlayer && pRenderer) {
+//        pMediaPlayer->setRenderer(pRenderer);
+//    }
 //    env->ReleaseStringUTFChars(url, _url);
 }
 
@@ -184,6 +191,19 @@ void _rendererInit(JNIEnv *env, jobject instance) {
 //
 //    }
     pRenderer = createES2Renderer();
+
+    if (!pCb2j) {
+        pCb2j = new Callback2Java(javaVM, env, instance);
+    }
+
+    if (!pPlayState) {
+        pPlayState = new PlayState();
+    }
+
+    if (!pMediaPlayer) {
+        pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, pRenderer);
+    }
+    LOGI("MediaPlayer", "init renderer is %s", pRenderer == nullptr ? "null" : "not null");
 //    if (pMediaPlayer && pRenderer) {
 //        pMediaPlayer->setRenderer(pRenderer);
 //    }
