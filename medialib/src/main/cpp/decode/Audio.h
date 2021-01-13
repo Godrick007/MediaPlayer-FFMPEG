@@ -73,6 +73,18 @@ public:
     double clock;
     long lastTime;
 
+
+    double audio_clock;
+    double last_updated;
+    double pts;
+    double drift;
+    double serial;
+    double buffer_size;
+    double hw_buffer_size;
+    double write_buffer_size;
+    double buffer_index;
+    double bytes_per_sec;
+
 public:
     Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j, bool isLiving = false);
 
@@ -100,6 +112,13 @@ public:
     void release();
 
     void setVolume(int percent);
+
+    void setClock(double pts, double last_updated, double serial);
+
+    int64_t getAVCallbackTime();
+
+    double getClock();
+
 };
 
 

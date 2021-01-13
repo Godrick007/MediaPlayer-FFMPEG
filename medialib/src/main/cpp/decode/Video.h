@@ -45,6 +45,9 @@ public:
     double clock;
     Renderer *renderer;
 
+    double pts;
+    double last_updated;
+
     SwsContext *pSwsContext = nullptr;
 
 //    FILE *fp_yuv;

@@ -10,10 +10,15 @@ Audio::Audio(PlayState *playState, int sampleRate, Callback2Java *cb2j, bool isL
     this->cb2j = cb2j;
     this->pSLProcessor = new SLProcessor(sampleRate, this);
     this->queue = new Queue(playState);
-    this->buffer_u8 = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2));
-    this->buffer_u16 = static_cast<uint16_t *>(av_malloc(sampleRate * 2 * 2));
-    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+    this->buffer_u8 = static_cast<uint8_t *>(av_malloc(sampleRate * 2 * 2 * 2));
+    this->buffer_u16 = static_cast<uint16_t *>(av_malloc(sampleRate * 2 * 2 * 2));
+    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2 * 2));
 //    this->isLiving = isLiving;
+
+
+
+
+
     this->isLiving = false;
     if (isLiving) {
 
@@ -167,21 +172,30 @@ int Audio::resampleAudio(void **pcmBuffer) {
                     (const uint8_t **) (this->pAVFrame->data),
                     this->pAVFrame->nb_samples
             );
-            for (int i = 0; i < dataSize / 2 + 1; i++) {
-                pSoundTouchBuffer[i] = (buffer_u8[i * 2] | buffer_u8[i * 2 + 1] << 8);
-            }
+//            *pcmBuffer = buffer_u8;
+
+//            for (int i = 0; i < dataSize / 2 + 1; i++) {
+//                pSoundTouchBuffer[i] = (buffer_u8[i * 2] | buffer_u8[i * 2 + 1] << 8);
+//            }
 
 
+
+//
             int outChannels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
-
+//
             this->dataSize = nb * outChannels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-
+//
             this->nowTime = this->pAVFrame->pts * av_q2d(this->timeBase);
 
             if (this->nowTime < this->clock) {
                 this->nowTime = this->clock;
             }
             this->clock = this->nowTime;
+
+
+            this->audio_clock =
+                    pAVFrame->pts + (double) pAVFrame->nb_samples / pAVFrame->sample_rate;
+            this->pts = pAVFrame->pts * av_q2d(timeBase);
 
 
             av_frame_free(&this->pAVFrame);
@@ -192,7 +206,7 @@ int Audio::resampleAudio(void **pcmBuffer) {
             this->pAVPacket = nullptr;
 
 
-            if (pSoundTouch != nullptr) {
+            if (pSoundTouch == nullptr) {
 
                 if (dataSize > 0) {
 
@@ -326,7 +340,7 @@ void Audio::release() {
     }
 
     if (buffer_u8 != nullptr) {
-        av_free(buffer_u8);
+//        av_free(buffer_u8);
         buffer_u8 = nullptr;
     }
 
@@ -377,5 +391,28 @@ void Audio::setVolume(int percent) {
     }
 }
 
+void Audio::setClock(double pts, double last_updated, double serial) {
+
+    LOGI("clock ", "pts is %lf , last_update is %lf", pts, last_updated);
+
+    this->pts = pts;
+    this->last_updated = last_updated;
+    this->drift = pts - last_updated;
+    this->serial = serial;
+}
 
 
+int64_t Audio::getAVCallbackTime() {
+    return av_gettime_relative();
+}
+
+double Audio::getClock() {
+
+    if (this->playState->pause) {
+        return pts;
+    } else {
+        return drift + av_gettime_relative() / AV_TIME_BASE;
+    }
+
+
+}

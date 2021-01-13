@@ -10,7 +10,9 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
     SLProcessor *instance = static_cast<SLProcessor *>(context);
 
     if (instance != nullptr) {
-        int bufferSize = instance->audio->resampleAudio(&instance->pPCMBuffer);
+
+        int64_t audio_callback_time = instance->audio->getAVCallbackTime();
+        int len, bufferSize = instance->audio->resampleAudio(&instance->pPCMBuffer);
 //        int bufferSize = instance->audio->getSoundTouchData(
 //                reinterpret_cast<void **>(&instance->pPCMBuffer));
         if (bufferSize > 0) {
@@ -31,6 +33,33 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
                                                    bufferSize * 2 * 2);*/
             (*instance->pcmBufferQueue)->Enqueue(instance->pcmBufferQueue, instance->pPCMBuffer,
                                                  bufferSize);
+
+
+
+//            instance->audio->hw_buffer_size = queueItf
+
+            if (instance->audio->buffer_index >= instance->audio->buffer_size) {
+                instance->audio->buffer_index = 0;
+            }
+
+            len = instance->audio->buffer_size - instance->audio->buffer_index;
+
+            instance->audio->buffer_index += len;
+
+            instance->audio->buffer_size = bufferSize;
+
+            instance->audio->write_buffer_size =
+                    instance->audio->buffer_size - instance->audio->buffer_index;
+
+
+            instance->audio->setClock(
+                    instance->audio->audio_clock - (double) (2 * instance->audio->hw_buffer_size +
+                                                             instance->audio->write_buffer_size) /
+                                                   instance->audio->bytes_per_sec,
+                    audio_callback_time / AV_TIME_BASE,
+                    instance->audio->serial
+
+            );
         }
 
     }
@@ -42,7 +71,7 @@ SLProcessor::SLProcessor(int sampleRate, Audio *audio) {
     this->sampleRate = sampleRate;
     this->audio = audio;
 //    this->pSoundTouchBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
-    this->pPCMBuffer = malloc(sampleRate * 2 * 2);
+    this->pPCMBuffer = malloc(sampleRate * 2 * 2 * 2);
 
 }
 
@@ -150,6 +179,7 @@ void SLProcessor::initialize() {
 
     SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
                                                             2};
+
 
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,
@@ -436,3 +466,5 @@ void SLProcessor::setVolume(int percent) {
     }
 
 }
+
+

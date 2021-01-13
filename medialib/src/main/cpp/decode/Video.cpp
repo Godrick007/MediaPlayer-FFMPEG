@@ -100,6 +100,12 @@ void *threadDecode(void *context) {
 
 //opengles render
 
+            LOGE("clock ", "get clock is %lf", instance->audio->getClock());
+
+//            instance->pts = frame->pts * av_q2d(instance->timeBase);
+//            instance->last_updated = av_gettime_relative() / AV_TIME_BASE;
+
+
 
 
             if (instance->renderer) {

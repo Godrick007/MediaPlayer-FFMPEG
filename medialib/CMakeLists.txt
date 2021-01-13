@@ -67,6 +67,8 @@ add_library( # Sets the name of the library.
         src/main/cpp/egl/RenderES3.cpp
 
 
+#        src/main/cpp/ffplay.c
+
         )
 
 

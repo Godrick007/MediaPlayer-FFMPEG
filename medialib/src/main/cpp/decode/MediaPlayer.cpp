@@ -303,6 +303,15 @@ void MediaPlayer::initialized() {
 //                                         pAVFormatContext->streams[i]->time_base.den};
                 this->audio->timeBase = pAVFormatContext->streams[i]->time_base;
                 this->duration = audio->duration;
+
+                this->audio->bytes_per_sec = av_samples_get_buffer_size(nullptr,
+                                                                        this->audio->pAVCodecParameters->channels,
+                                                                        this->audio->pAVCodecParameters->sample_rate,
+                                                                        (AVSampleFormat) this->audio->pAVCodecParameters->format,
+                                                                        1);
+
+                this->audio->hw_buffer_size = this->audio->pAVCodecParameters->sample_rate * 4;
+
             }
         } else if (pAVFormatContext->streams[i]->codecpar->codec_type ==
                    AVMEDIA_TYPE_VIDEO) {//video stream
