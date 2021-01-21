@@ -8,6 +8,9 @@
 
 #include "../util/LogUtil.h"
 #include "../util/EGLUtil.h"
+#include <android/surface_texture.h>
+#include <android/surface_texture_jni.h>
+
 
 
 extern "C" {
@@ -87,16 +90,23 @@ protected:
     void draw();
 
     const EGLContext mEglContext;
-    GLuint mProgram;
+    GLuint mProgramSW;
     GLuint mVertexPositionBuffer;
     GLuint mFragmentPositionBuffer;
-    GLuint av_Position;
-    GLuint af_Position;
+    GLuint av_PositionSW;
+    GLuint af_PositionSW;
 //    GLuint textureId;
     GLuint sampler_y;
     GLuint sampler_u;
     GLuint sampler_v;
     GLuint textureId_yuv[3];
+
+    GLuint mProgramHW;
+    GLuint av_PositionHW;
+    GLuint af_PositionHW;
+    GLuint sTextureHW;
+    GLuint textureId_HW;
+    ASurfaceTexture *surfaceTexture;
 
 
 private:

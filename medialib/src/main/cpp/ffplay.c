@@ -930,7 +930,7 @@ static int upload_texture(SDL_Texture **tex, AVFrame *frame, struct SwsContext *
                     SDL_UnlockTexture(*tex);
                 }
             } else {
-                av_log(NULL, AV_LOG_FATAL, "Cannot initialize the conversion context\n");
+                av_log(NULL, AV_LOG_FATAL, "Cannot start the conversion context\n");
                 ret = -1;
             }
             break;
@@ -1011,7 +1011,7 @@ static void video_image_display(VideoState *is)
                                                                    sub_rect->w, sub_rect->h, AV_PIX_FMT_BGRA,
                                                                    0, NULL, NULL, NULL);
                         if (!is->sub_convert_ctx) {
-                            av_log(NULL, AV_LOG_FATAL, "Cannot initialize the conversion context\n");
+                            av_log(NULL, AV_LOG_FATAL, "Cannot start the conversion context\n");
                             return;
                         }
                         if (!SDL_LockTexture(is->sub_texture, (SDL_Rect *)sub_rect, (void **)pixels, pitch)) {
@@ -2675,7 +2675,7 @@ static int stream_component_open(VideoState *is, int stream_index)
             is->audio_buf_size  = 0;
             is->audio_buf_index = 0;
 
-            /* init averaging filter */
+            /* initSW averaging filter */
             is->audio_diff_avg_coef  = exp(log(0.01) / AUDIO_DIFF_AVG_NB);
             is->audio_diff_avg_count = 0;
             /* since we do not have a precise anough audio FIFO fullness,
@@ -3730,7 +3730,7 @@ int main(int argc, char **argv)
     if (display_disable)
         flags &= ~SDL_INIT_VIDEO;
     if (SDL_Init (flags)) {
-        av_log(NULL, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());
+        av_log(NULL, AV_LOG_FATAL, "Could not start SDL - %s\n", SDL_GetError());
         av_log(NULL, AV_LOG_FATAL, "(Did you set the DISPLAY variable?)\n");
         exit(1);
     }
@@ -3758,7 +3758,7 @@ int main(int argc, char **argv)
         if (window) {
             renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
             if (!renderer) {
-                av_log(NULL, AV_LOG_WARNING, "Failed to initialize a hardware accelerated renderer: %s\n", SDL_GetError());
+                av_log(NULL, AV_LOG_WARNING, "Failed to start a hardware accelerated renderer: %s\n", SDL_GetError());
                 renderer = SDL_CreateRenderer(window, -1, 0);
             }
             if (renderer) {
@@ -3774,7 +3774,7 @@ int main(int argc, char **argv)
 
     is = stream_open(input_filename, file_iformat);
     if (!is) {
-        av_log(NULL, AV_LOG_FATAL, "Failed to initialize VideoState!\n");
+        av_log(NULL, AV_LOG_FATAL, "Failed to start VideoState!\n");
         do_exit(NULL);
     }
 

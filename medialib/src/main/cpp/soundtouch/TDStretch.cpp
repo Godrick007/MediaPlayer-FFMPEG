@@ -595,7 +595,7 @@ void TDStretch::setChannels(int numChannels)
     inputBuffer.setChannels(channels);
     outputBuffer.setChannels(channels);
 
-    // re-init overlap/buffer
+    // re-initSW overlap/buffer
     overlapLength=0;
     setParameters(sampleRate);
 }

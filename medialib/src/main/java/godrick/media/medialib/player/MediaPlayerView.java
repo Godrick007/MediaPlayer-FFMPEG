@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
+import godrick.media.medialib.natives.NativeMediaEnter;
 import godrick.media.medialib.utils.MediaUtil;
 
 public class MediaPlayerView extends GLSurfaceView {
@@ -43,7 +44,7 @@ public class MediaPlayerView extends GLSurfaceView {
 
 
         } else {                //sw
-//            NativeMediaEnter.getInstance().prepare(url, isLiving);
+            NativeMediaEnter.getInstance().prepare(url, isLiving);
         }
 
 

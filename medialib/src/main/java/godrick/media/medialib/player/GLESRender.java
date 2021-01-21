@@ -3,6 +3,7 @@ package godrick.media.medialib.player;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import android.view.Surface;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -13,9 +14,14 @@ public class GLESRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
 
     private long count = 0;
     private OnRenderListener onRenderListener;
+    private OnSurfaceCreatedListener onSurfaceCreatedListener;
 
     public void setOnRenderListener(OnRenderListener onRenderListener) {
         this.onRenderListener = onRenderListener;
+    }
+
+    public void setOnSurfaceCreatedListener(OnSurfaceCreatedListener onSurfaceCreatedListener) {
+        this.onSurfaceCreatedListener = onSurfaceCreatedListener;
     }
 
     @Override
@@ -43,6 +49,10 @@ public class GLESRender implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
         if (onRenderListener != null) {
             onRenderListener.onRender();
         }
+    }
+
+    public interface OnSurfaceCreatedListener {
+        void onSurfaceCreated(Surface surface);
     }
 
     public interface OnRenderListener {

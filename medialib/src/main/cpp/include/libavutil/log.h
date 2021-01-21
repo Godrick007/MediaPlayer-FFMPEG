@@ -148,7 +148,7 @@ typedef struct AVClass {
      * Iterate over the AVClasses corresponding to potential AVOptions-enabled
      * children.
      *
-     * @param iter pointer to opaque iteration state. The caller must initialize
+     * @param iter pointer to opaque iteration state. The caller must start
      *             *iter to NULL before the first call.
      * @return AVClass for the next AVOptions-enabled child or NULL if there are
      *         no more such children.

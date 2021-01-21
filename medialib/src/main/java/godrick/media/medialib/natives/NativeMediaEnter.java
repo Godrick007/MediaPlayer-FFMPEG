@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.media.MediaCodecList;
 import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import godrick.media.medialib.itfs.IRequestRenderListener;
 
@@ -84,6 +85,10 @@ public class NativeMediaEnter {
         nRendererDrawFrame();
     }
 
+    public void eglStart(Surface surface) {
+        nEGLStart(surface);
+    }
+
     //======================java methods end =================
 
 
@@ -111,6 +116,8 @@ public class NativeMediaEnter {
     private native void nRendererResize(int width, int height);
 
     private native void nRendererDrawFrame();
+
+    private native void nEGLStart(Surface surface);
 
 
     //======================ndk methods end ==================

@@ -205,7 +205,7 @@
  *   be set to the timebase that the caller desires to use for this stream (note
  *   that the timebase actually used by the muxer can be different, as will be
  *   described later).
- * - It is advised to manually initialize only the relevant fields in
+ * - It is advised to manually start only the relevant fields in
  *   AVCodecParameters, rather than using @ref avcodec_parameters_copy() during
  *   remuxing: there is no guarantee that the codec context values remain valid
  *   for both input and output format contexts.
@@ -218,7 +218,7 @@
  *   support.
  *
  * When the muxing context is fully set up, the caller must call
- * avformat_write_header() to initialize the muxer internals and write the file
+ * avformat_write_header() to start the muxer internals and write the file
  * header. Whether anything actually is written to the IO context at this step
  * depends on the muxer, but this function must always be called. Any muxer
  * private options must be passed in the options parameter to this function.
@@ -403,7 +403,7 @@ struct AVDeviceCapabilitiesQuery;
 
 
 /**
- * Allocate and read the payload of a packet and initialize its
+ * Allocate and read the payload of a packet and start its
  * fields with default values.
  *
  * @param s    associated IO context
@@ -617,7 +617,7 @@ typedef struct AVOutputFormat {
      *
      * If a trailer is being written, this is called after write_trailer().
      *
-     * This is called if init() fails as well.
+     * This is called if initSW() fails as well.
      */
     void (*deinit)(struct AVFormatContext *);
     /**
@@ -703,7 +703,7 @@ typedef struct AVInputFormat {
     int (*read_probe)(const AVProbeData *);
 
     /**
-     * Read the format header and initialize the AVFormatContext
+     * Read the format header and start the AVFormatContext
      * structure. Return 0 if OK. 'avformat_new_stream' should be
      * called to create new streams.
      */
@@ -2528,8 +2528,8 @@ av_warn_unused_result
 int avformat_write_header(AVFormatContext *s, AVDictionary **options);
 
 /**
- * Allocate the stream private data and initialize the codec, but do not write the header.
- * May optionally be used before avformat_write_header to initialize stream parameters
+ * Allocate the stream private data and start the codec, but do not write the header.
+ * May optionally be used before avformat_write_header to start stream parameters
  * before actually writing the header.
  * If using this function, do not pass the same options to avformat_write_header.
  *
@@ -2540,7 +2540,7 @@ int avformat_write_header(AVFormatContext *s, AVDictionary **options);
  *                 On return this parameter will be destroyed and replaced with a dict containing
  *                 options that were not found. May be NULL.
  *
- * @return AVSTREAM_INIT_IN_WRITE_HEADER on success if the codec requires avformat_write_header to fully initialize,
+ * @return AVSTREAM_INIT_IN_WRITE_HEADER on success if the codec requires avformat_write_header to fully start,
  *         AVSTREAM_INIT_IN_INIT_OUTPUT  on success if the codec has been fully initialized,
  *         negative AVERROR on failure.
  *

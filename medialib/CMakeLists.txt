@@ -16,7 +16,7 @@ elseif (COMPILER_SUPPORTS_CXX0X)
 else ()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif ()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID_STL=c++_shared -fexceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DANDROID_STL=c++_shared -fexceptions -fstack-protector-all")
 
 #if (${ANDROID_PLATFORM_LEVEL} LESS 12)
 #    message(FATAL_ERROR "OpenGL 2 is not supported before API level 11 \
@@ -65,6 +65,7 @@ add_library( # Sets the name of the library.
         #        src/main/cpp/egl/gl3stub.c
         src/main/cpp/egl/RenderES2.cpp
         src/main/cpp/egl/RenderES3.cpp
+        src/main/cpp/egl/EGLHelper.cpp
 
 
 #        src/main/cpp/ffplay.c
@@ -177,6 +178,7 @@ target_link_libraries( # Specifies the target library.
         OpenSLES
         GLESv2
         #        ${OPENGL_LIB}
+        jnigraphics
 
         EGL
         avcodec-58

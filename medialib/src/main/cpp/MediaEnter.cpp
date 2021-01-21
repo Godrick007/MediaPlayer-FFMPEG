@@ -4,6 +4,9 @@
 #include "decode/MediaPlayer.h"
 #include "decode/PlayState.h"
 #include "egl/GLESRenderer.h"
+#include "egl/EGLHelper.h"
+#include <android/native_window_jni.h>
+#include <unistd.h>
 
 
 JavaVM *javaVM = nullptr;
@@ -35,6 +38,9 @@ void _rendererResize(JNIEnv *env, jobject instance, jint width, jint height);
 
 void _rendererDrawFrame(JNIEnv *env, jobject instance);
 
+void _eglStart(JNIEnv *env, jobject instance, jobject surface);
+
+
 static const JNINativeMethod methods[] = {
         //renderer
         {"nSetSurface",         "(Landroid/view/Surface;)V", (void *) _setSurface},
@@ -50,6 +56,7 @@ static const JNINativeMethod methods[] = {
         {"nRendererInitialize", "()V",                       (void *) _rendererInit},
         {"nRendererResize",     "(II)V",                     (void *) _rendererResize},
         {"nRendererDrawFrame",  "()V",                       (void *) _rendererDrawFrame},
+        {"nEGLStart",           "(Landroid/view/Surface;)V", (void *) _eglStart},
 };
 
 
@@ -203,7 +210,7 @@ void _rendererInit(JNIEnv *env, jobject instance) {
     if (!pMediaPlayer) {
         pMediaPlayer = new MediaPlayer(pPlayState, pCb2j, pRenderer);
     }
-    LOGI("MediaPlayer", "init renderer is %s", pRenderer == nullptr ? "null" : "not null");
+    LOGI("MediaPlayer", "initSW renderer is %s", pRenderer == nullptr ? "null" : "not null");
 //    if (pMediaPlayer && pRenderer) {
 //        pMediaPlayer->setRenderer(pRenderer);
 //    }
@@ -221,6 +228,48 @@ void _rendererDrawFrame(JNIEnv *env, jobject instance) {
         pRenderer->render();
     }
 }
+
+
+void *eglStartCallback(void *context) {
+
+    EGLHelper *eglHelper = new EGLHelper();
+    if (eglHelper->start(static_cast<ANativeWindow *>(context), nullptr)) {
+        if (LOG_DEBUG) {
+            LOGI("EGLHelper", "start() success");
+        }
+        while (1) {
+
+            glViewport(0, 0, 100, 100);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(1.0, 1.0, 0, 0);
+
+
+            eglHelper->swap();
+            usleep(16 * 1000);
+        }
+    } else {
+        if (LOG_DEBUG) {
+            LOGI("EGLHelper", "start() failed");
+        }
+    }
+    return nullptr;
+}
+
+void _eglStart(JNIEnv *env, jobject instance, jobject surface) {
+
+    pthread_t threadEGLStart;
+
+//    1.如果在UI线程中创建SurfaceView，那么需要在UI线程中使用ANativeWindow_fromSurface；
+//
+//    2.如果在非UI线程中创建SurfaceView，那么需要等待SurfaceView创建完成之后，才能调用ANativeWindow_fromSurface，至于能不能在UI线程中调用ANativeWindow_fromSurface，那我就没试过了，有朋友试过的话，不妨告诉我。
+
+    ANativeWindow *win = ANativeWindow_fromSurface(env, surface);
+
+    pthread_create(&threadEGLStart, nullptr, eglStartCallback, win);
+
+
+}
+
 
 
 

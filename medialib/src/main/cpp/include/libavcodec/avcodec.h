@@ -546,7 +546,7 @@ typedef struct AVCodecContext {
      * extra_codec_tag + size could be added but for this a clear advantage must be demonstrated
      * first.
      * - encoding: Set by user, if not then the default based on codec_id will be used.
-     * - decoding: Set by user, will be converted to uppercase by libavcodec during init.
+     * - decoding: Set by user, will be converted to uppercase by libavcodec during initSW.
      */
     unsigned int codec_tag;
 
@@ -2563,7 +2563,7 @@ typedef struct AVHWAccel {
      * from get_format. Refer to avcodec_get_hw_frames_parameters() for
      * details.
      *
-     * This CAN be called before AVHWAccel.init is called, and you must assume
+     * This CAN be called before AVHWAccel.initSW is called, and you must assume
      * that avctx->hwaccel_priv_data is invalid.
      */
     int (*frame_params)(AVCodecContext *avctx, AVBufferRef *hw_frames_ctx);
@@ -2727,7 +2727,7 @@ const char *avcodec_license(void);
 
 #if FF_API_NEXT
 /**
- * Register the codec codec and initialize libavcodec.
+ * Register the codec codec and start libavcodec.
  *
  * @warning either this function or avcodec_register_all() must be called
  * before any other libavcodec functions.
@@ -2755,7 +2755,7 @@ void avcodec_register_all(void);
  * Allocate an AVCodecContext and set its fields to default values. The
  * resulting struct should be freed with avcodec_free_context().
  *
- * @param codec if non-NULL, allocate private data and initialize defaults
+ * @param codec if non-NULL, allocate private data and start defaults
  *              for the given codec. It is illegal to then call avcodec_open2()
  *              with a different codec.
  *              If NULL, then the codec-specific defaults won't be initialized,
@@ -2874,7 +2874,7 @@ int avcodec_parameters_to_context(AVCodecContext *codec,
  *     exit(1);
  * @endcode
  *
- * @param avctx The context to initialize.
+ * @param avctx The context to start.
  * @param codec The codec to open this context for. If a non-NULL codec has been
  *              previously passed to avcodec_alloc_context3() or
  *              for this context, then this parameter MUST be either NULL or
@@ -3266,7 +3266,7 @@ int avcodec_receive_packet(AVCodecContext *avctx, AVPacket *avpkt);
  *   the user must return the same hw_pix_fmt from get_format.
  * - The device_ref passed to this function must support the given hw_pix_fmt.
  * - After calling this API function, it is the user's responsibility to
- *   initialize the AVHWFramesContext (returned by the out_frames_ref parameter),
+ *   start the AVHWFramesContext (returned by the out_frames_ref parameter),
  *   and to set AVCodecContext.hw_frames_ctx to it. If done, this must be done
  *   before returning from get_format (this is implied by the normal
  *   AVCodecContext.hw_frames_ctx API rules).
@@ -4127,7 +4127,7 @@ int av_lockmgr_register(int (*cb)(void **mutex, enum AVLockOp op));
 int avcodec_is_open(AVCodecContext *s);
 
 /**
- * Allocate a CPB properties structure and initialize its fields to default
+ * Allocate a CPB properties structure and start its fields to default
  * values.
  *
  * @param size if non-NULL, the size of the allocated struct will be written

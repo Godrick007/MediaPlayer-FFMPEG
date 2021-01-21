@@ -254,7 +254,7 @@ int av_buffer_replace(AVBufferRef **dst, AVBufferRef *src);
 typedef struct AVBufferPool AVBufferPool;
 
 /**
- * Allocate and initialize a buffer pool.
+ * Allocate and start a buffer pool.
  *
  * @param size size of each buffer in this pool
  * @param alloc a function that will be used to allocate new buffers when the
@@ -265,7 +265,7 @@ typedef struct AVBufferPool AVBufferPool;
 AVBufferPool *av_buffer_pool_init(int size, AVBufferRef* (*alloc)(int size));
 
 /**
- * Allocate and initialize a buffer pool with a more complex allocator.
+ * Allocate and start a buffer pool with a more complex allocator.
  *
  * @param size size of each buffer in this pool
  * @param opaque arbitrary user data used by the allocator

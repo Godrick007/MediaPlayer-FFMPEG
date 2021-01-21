@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        tv.setText(NativeMediaEnter.getInstance().nTest() + " = " + NativeMediaEnter.getInstance().nVersionTest());
 
 
-        mp = findViewById(R.id.video);
+//        mp = findViewById(R.id.video);
 
         NativeMediaEnter.getInstance().setRequestRenderListener(new IRequestRenderListener() {
             @Override
@@ -75,7 +75,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //                Log.e("", "");
 
-                NativeMediaEnter.getInstance().prepare(file.getAbsolutePath(), false);
+                mp.setMediaUrl(file.getAbsolutePath(), false);
+
+//                NativeMediaEnter.getInstance().prepare(file.getAbsolutePath(), false);
 //                mp.setRenderer(new GLESRender());
 //                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 //                    @Override

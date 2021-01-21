@@ -60,7 +60,7 @@ typedef struct AVDOVIDecoderConfigurationRecord {
 } AVDOVIDecoderConfigurationRecord;
 
 /**
- * Allocate a AVDOVIDecoderConfigurationRecord structure and initialize its
+ * Allocate a AVDOVIDecoderConfigurationRecord structure and start its
  * fields to default values.
  *
  * @return the newly allocated struct or NULL on failure

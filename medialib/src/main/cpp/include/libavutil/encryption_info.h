@@ -81,7 +81,7 @@ typedef struct AVEncryptionInfo {
 } AVEncryptionInfo;
 
 /**
- * This describes info used to initialize an encryption key system.
+ * This describes info used to start an encryption key system.
  *
  * The size of this struct is not part of the public ABI.
  */
@@ -125,7 +125,7 @@ typedef struct AVEncryptionInitInfo {
 /**
  * Allocates an AVEncryptionInfo structure and sub-pointers to hold the given
  * number of subsamples.  This will allocate pointers for the key ID, IV,
- * and subsample entries, set the size members, and zero-initialize the rest.
+ * and subsample entries, set the size members, and zero-start the rest.
  *
  * @param subsample_count The number of subsamples.
  * @param key_id_size The number of bytes in the key ID, should be 16.
@@ -177,7 +177,7 @@ AVEncryptionInitInfo *av_encryption_init_info_alloc(
     uint32_t system_id_size, uint32_t num_key_ids, uint32_t key_id_size, uint32_t data_size);
 
 /**
- * Frees the given encryption init info object.  This MUST NOT be used to free
+ * Frees the given encryption initSW info object.  This MUST NOT be used to free
  * the side-data data pointer, that should use normal side-data methods.
  */
 void av_encryption_init_info_free(AVEncryptionInitInfo* info);
@@ -194,7 +194,7 @@ AVEncryptionInitInfo *av_encryption_init_info_get_side_data(
 
 /**
  * Allocates and initializes side data that holds a copy of the given encryption
- * init info.  The resulting pointer should be either freed using av_free or
+ * initSW info.  The resulting pointer should be either freed using av_free or
  * given to av_packet_add_side_data().
  *
  * @return The new side-data pointer, or NULL.

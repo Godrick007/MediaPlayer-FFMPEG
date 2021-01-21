@@ -213,7 +213,7 @@ struct SwrContext *swr_alloc(void);
  * @see av_opt_set_int()
  * @see av_opt_set_dict()
  *
- * @param[in,out]   s Swr context to initialize
+ * @param[in,out]   s Swr context to start
  * @return AVERROR error code in case of failure.
  */
 int swr_init(struct SwrContext *s);

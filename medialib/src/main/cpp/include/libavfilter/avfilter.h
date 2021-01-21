@@ -234,15 +234,15 @@ typedef struct AVFilter {
     int (*init)(AVFilterContext *ctx);
 
     /**
-     * Should be set instead of @ref AVFilter.init "init" by the filters that
+     * Should be set instead of @ref AVFilter.init "initSW" by the filters that
      * want to pass a dictionary of AVOptions to nested contexts that are
-     * allocated during init.
+     * allocated during initSW.
      *
      * On return, the options dict should be freed and replaced with one that
      * contains all the options which could not be processed by this filter (or
      * with NULL if all the options were processed).
      *
-     * Otherwise the semantics is the same as for @ref AVFilter.init "init".
+     * Otherwise the semantics is the same as for @ref AVFilter.init "initSW".
      */
     int (*init_dict)(AVFilterContext *ctx, AVDictionary **options);
 
@@ -253,7 +253,7 @@ typedef struct AVFilter {
      * memory held by the filter, release any buffer references, etc. It does
      * not need to deallocate the AVFilterContext.priv memory itself.
      *
-     * This callback may be called even if @ref AVFilter.init "init" was not
+     * This callback may be called even if @ref AVFilter.init "initSW" was not
      * called or failed, so it must be prepared to handle such a situation.
      */
     void (*uninit)(AVFilterContext *ctx);
@@ -309,7 +309,7 @@ typedef struct AVFilter {
     int (*process_command)(AVFilterContext *, const char *cmd, const char *arg, char *res, int res_len, int flags);
 
     /**
-     * Filter initialization function, alternative to the init()
+     * Filter initialization function, alternative to the initSW()
      * callback. Args contains the user-supplied parameters, opaque is
      * used for providing binary data.
      */
@@ -763,8 +763,8 @@ const AVFilter *avfilter_get_by_name(const char *name);
 /**
  * Initialize a filter with the supplied parameters.
  *
- * @param ctx  uninitialized filter context to initialize
- * @param args Options to initialize the filter with. This must be a
+ * @param ctx  uninitialized filter context to start
+ * @param args Options to start the filter with. This must be a
  *             ':'-separated list of options in the 'key=value' form.
  *             May be NULL if the options have been set directly using the
  *             AVOptions API or there are no options that need to be set.
@@ -775,7 +775,7 @@ int avfilter_init_str(AVFilterContext *ctx, const char *args);
 /**
  * Initialize a filter with the supplied dictionary of options.
  *
- * @param ctx     uninitialized filter context to initialize
+ * @param ctx     uninitialized filter context to start
  * @param options An AVDictionary filled with options for this filter. On
  *                return this parameter will be destroyed and replaced with
  *                a dict containing options that were not found. This dictionary

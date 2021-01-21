@@ -7,14 +7,14 @@
 #include <cstdlib>
 
 
-static const char VERTEX_SHADER[] = "#version 100\n"
-                                    "attribute vec4 av_Position;\n"
-                                    "attribute vec2 af_Position;\n"
-                                    "varying vec2 v_texPosition;\n"
-                                    "void main(){\n"
-                                    "    v_texPosition = af_Position;\n"
-                                    "    gl_Position = av_Position;\n"
-                                    "}";
+static const char VERTEX_SHADER_SW[] = "#version 100\n"
+                                       "attribute vec4 av_Position;\n"
+                                       "attribute vec2 af_Position;\n"
+                                       "varying vec2 v_texPosition;\n"
+                                       "void main(){\n"
+                                       "    v_texPosition = af_Position;\n"
+                                       "    gl_Position = av_Position;\n"
+                                       "}";
 
 static const char FRAGMENT_SHADER_TEST[] = "#version 100\n"
                                            "precision mediump float;\n"
@@ -24,28 +24,42 @@ static const char FRAGMENT_SHADER_TEST[] = "#version 100\n"
                                            "}";
 
 
-static const char FRAGMENT_SHADER[] = "#version 100\n"
-                                      "precision mediump float;\n"
-                                      "varying vec2 v_texPosition;\n"
-                                      "uniform sampler2D sampler_y;\n"
-                                      "uniform sampler2D sampler_u;\n"
-                                      "uniform sampler2D sampler_v;\n"
-                                      "void main() {\n"
-                                      "    float y,u,v;\n"
-                                      "    y = texture2D(sampler_y,v_texPosition).r;\n"
-                                      "    u = texture2D(sampler_u,v_texPosition).r- 0.5;\n"
-                                      "    v = texture2D(sampler_v,v_texPosition).r- 0.5;\n"
-                                      "    vec3 rgb;\n"
-                                      "    rgb.r = y + 1.403 * v;\n"
-                                      "    rgb.g = y - 0.344 * u - 0.714 * v;\n"
-                                      "    rgb.b = y + 1.770 * u;\n"
-                                      "    gl_FragColor = vec4(rgb,1);\n"
-                                      "}";
+static const char FRAGMENT_SHADER_SW[] = "#version 100\n"
+                                         "precision mediump float;\n"
+                                         "varying vec2 v_texPosition;\n"
+                                         "uniform sampler2D sampler_y;\n"
+                                         "uniform sampler2D sampler_u;\n"
+                                         "uniform sampler2D sampler_v;\n"
+                                         "void main() {\n"
+                                         "    float y,u,v;\n"
+                                         "    y = texture2D(sampler_y,v_texPosition).r;\n"
+                                         "    u = texture2D(sampler_u,v_texPosition).r- 0.5;\n"
+                                         "    v = texture2D(sampler_v,v_texPosition).r- 0.5;\n"
+                                         "    vec3 rgb;\n"
+                                         "    rgb.r = y + 1.403 * v;\n"
+                                         "    rgb.g = y - 0.344 * u - 0.714 * v;\n"
+                                         "    rgb.b = y + 1.770 * u;\n"
+                                         "    gl_FragColor = vec4(rgb,1);\n"
+                                         "}";
+
+
+static const char FRAGMENT_SHADER_HW[] = "#version 100\n"
+                                         "#extension GL_OES_EGL_image_external:require\n"
+                                         "precision mediump float;\n"
+                                         "varying vec2 v_texPosition;\n"
+                                         "uniform samplerExternalOES sTexture;\n"
+                                         "\n"
+                                         "void main(){\n"
+                                         "    gl_FragColor = texture2D(sTexture,v_texPosition);\n"
+                                         "}";
+
 
 class RendererES2 : public Renderer {
 
 public:
-    bool init();
+    bool initSW();
+
+    bool initHW();
 
 private :
 
@@ -54,9 +68,11 @@ private :
 
 Renderer *createES2Renderer() {
     RendererES2 *renderer = new RendererES2;
-    if (!renderer->init()) {
+    if (!renderer->initSW()) {
         return nullptr;
-        delete renderer;
+    }
+    if (!renderer->initHW()) {
+        return nullptr;
     }
     return renderer;
 }
@@ -70,7 +86,7 @@ Renderer::~Renderer() {
         return;
     }
     LOGD("OpenGLES2.0", "~Renderer() has called");
-    glDeleteProgram(mProgram);
+    glDeleteProgram(mProgramSW);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0, 0, 0, 1);
 }
@@ -80,20 +96,20 @@ void Renderer::render() {
     draw();
 }
 
-bool RendererES2::init() {
+bool RendererES2::initSW() {
 
-//    mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+//    mProgramSW = createProgram(VERTEX_SHADER_SW, FRAGMENT_SHADER_SW);
     if (eglUtil == nullptr) {
         return false;
     }
 
-    mProgram = eglUtil->createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-    if (!mProgram) {
+    mProgramSW = eglUtil->createProgram(VERTEX_SHADER_SW, FRAGMENT_SHADER_SW);
+    if (!mProgramSW) {
         return false;
     }
 
-//    av_Position = glGetAttribLocation(mProgram, "av_Position");
-//    af_Position = glGetUniformLocation(mProgram, "v_texPosition");
+//    av_PositionSW = glGetAttribLocation(mProgramSW, "av_PositionSW");
+//    af_PositionSW = glGetUniformLocation(mProgramSW, "v_texPosition");
 //
 //    glGenBuffers(1, &mVertexPositionBuffer);
 //    glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
@@ -103,11 +119,11 @@ bool RendererES2::init() {
 //        return true;
 //    }
 
-    av_Position = glGetAttribLocation(mProgram, "av_Position");
-    af_Position = glGetAttribLocation(mProgram, "af_Position");
-    sampler_y = glGetUniformLocation(mProgram, "sampler_y");
-    sampler_u = glGetUniformLocation(mProgram, "sampler_u");
-    sampler_v = glGetUniformLocation(mProgram, "sampler_v");
+    av_PositionSW = glGetAttribLocation(mProgramSW, "av_Position");
+    af_PositionSW = glGetAttribLocation(mProgramSW, "af_Position");
+    sampler_y = glGetUniformLocation(mProgramSW, "sampler_y");
+    sampler_u = glGetUniformLocation(mProgramSW, "sampler_u");
+    sampler_v = glGetUniformLocation(mProgramSW, "sampler_v");
 
 //    glGenBuffers(1, &mVertexPositionBuffer);
 ////    glBindBuffer(GL_ARRAY_BUFFER, mVertexPositionBuffer);
@@ -127,6 +143,14 @@ bool RendererES2::init() {
     }
     return true;
 }
+
+bool RendererES2::initHW() {
+
+//    ANativeWindow
+//
+//    return true;
+}
+
 
 void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
 
@@ -219,7 +243,7 @@ void Renderer::calcTextureData() {
 //
 //    glDeleteBuffers(1, &mVertexPositionBuffer);
 //    glDeleteBuffers(1, &mFragmentPositionBuffer);
-//    glDeleteProgram(mProgram);
+//    glDeleteProgram(mProgramSW);
 //
 //    glClear(GL_COLOR_BUFFER_BIT);
 //    glClearColor(0, 0, 0, 1);
@@ -233,15 +257,15 @@ void Renderer::draw() {
 
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0, 0, 0, 1);
-        glUseProgram(mProgram);
+        glUseProgram(mProgramSW);
 
-        glEnableVertexAttribArray(av_Position);
-        glVertexAttribPointer(av_Position, 2, GL_FLOAT, GL_FALSE, 8,
+        glEnableVertexAttribArray(av_PositionSW);
+        glVertexAttribPointer(av_PositionSW, 2, GL_FLOAT, GL_FALSE, 8,
                               (const void *) vertexData);
 
 
-        glEnableVertexAttribArray(af_Position);
-        glVertexAttribPointer(af_Position, 2, GL_FLOAT, GL_TRUE, 8,
+        glEnableVertexAttribArray(af_PositionSW);
+        glVertexAttribPointer(af_PositionSW, 2, GL_FLOAT, GL_TRUE, 8,
                               textureData);
 
 //        OpenGL要求所有的纹理都是4字节对齐的，即纹理的大小永远是4字节的倍数。

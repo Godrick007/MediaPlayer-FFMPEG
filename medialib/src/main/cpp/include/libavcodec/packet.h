@@ -471,7 +471,7 @@ void av_packet_free(AVPacket **pkt);
 void av_init_packet(AVPacket *pkt);
 
 /**
- * Allocate the payload of a packet and initialize its fields with
+ * Allocate the payload of a packet and start its fields with
  * default values.
  *
  * @param pkt packet

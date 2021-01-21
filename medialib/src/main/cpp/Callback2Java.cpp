@@ -100,7 +100,7 @@ Callback2Java::cb2j_MediaPlayer_InitError(CallbackThread thread, int errorCode, 
         JNIEnv *env;
         if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
             if (LOG_DEBUG) {
-                LOGD("MediaPlayer", "Player init error code = %d, msg = %s", errorCode, msg);
+                LOGD("MediaPlayer", "Player initSW error code = %d, msg = %s", errorCode, msg);
             }
             return;
         }
@@ -209,7 +209,7 @@ Callback2Java::cb2j_MediaPlayer_SL_InitError(CallbackThread thread, int errorCod
         JNIEnv *env;
         if (jvm->AttachCurrentThread(&env, 0) != JNI_OK) {
             if (LOG_DEBUG) {
-                LOGD("MediaPlayer", "Player init error code = %d, msg = %s", errorCode, msg);
+                LOGD("MediaPlayer", "Player initSW error code = %d, msg = %s", errorCode, msg);
             }
             return;
         }

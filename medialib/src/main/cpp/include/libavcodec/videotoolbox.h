@@ -77,7 +77,7 @@ typedef struct AVVideotoolboxContext {
 } AVVideotoolboxContext;
 
 /**
- * Allocate and initialize a Videotoolbox context.
+ * Allocate and start a Videotoolbox context.
  *
  * This function should be called from the get_format() callback when the caller
  * selects the AV_PIX_FMT_VIDETOOLBOX format. The caller must then create

@@ -183,7 +183,7 @@ typedef struct AVSphericalMapping {
 } AVSphericalMapping;
 
 /**
- * Allocate a AVSphericalVideo structure and initialize its fields to default
+ * Allocate a AVSphericalVideo structure and start its fields to default
  * values.
  *
  * @return the newly allocated struct or NULL on failure

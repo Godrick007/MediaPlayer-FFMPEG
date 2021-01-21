@@ -873,7 +873,7 @@ typedef struct x264_picture_t
 } x264_picture_t;
 
 /* x264_picture_init:
- *  initialize an x264_picture_t.  Needs to be done if the calling application
+ *  start an x264_picture_t.  Needs to be done if the calling application
  *  allocates its own x264_picture_t as opposed to using x264_picture_alloc. */
 X264_API void x264_picture_init( x264_picture_t *pic );
 

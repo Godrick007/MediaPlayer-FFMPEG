@@ -30,7 +30,7 @@
 //
 //private:
 //
-//    static void initialize();
+//    static void start();
 //
 //};
 //

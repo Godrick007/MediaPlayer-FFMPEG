@@ -85,7 +85,7 @@
  *
  * Next, when allocating your struct, you must ensure that the AVClass pointer
  * is set to the correct value. Then, av_opt_set_defaults() can be called to
- * initialize defaults. After that the struct is ready to be used with the
+ * start defaults. After that the struct is ready to be used with the
  * AVOptions API.
  *
  * When cleaning up, you may use the av_opt_free() function to automatically

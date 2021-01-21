@@ -7,7 +7,7 @@
 //char *MediaCodecUtil::getMediaMIMEType(uint8_t codecID) {
 //
 //    if (mapping.size() == 0) {
-//        initialize();
+//        start();
 //    }
 //
 //    map<uint8_t, string>::iterator it = mapping.find(codecID);
@@ -26,7 +26,7 @@
 //    return nullptr;
 //}
 //
-//void MediaCodecUtil::initialize() {
+//void MediaCodecUtil::start() {
 //
 //    //video
 ////    mapping.insert(pair<uint8_t, string>(AV_CODEC_ID_MPEG1VIDEO, ""));
