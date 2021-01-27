@@ -4,7 +4,7 @@
 
 #include "MediaPlayer.h"
 
-int AVContextInterruptCallback(void *context) {
+int AVContextInterruptCallback1(void *context) {
     MediaPlayer *instance = static_cast<MediaPlayer *>(context);
     if (instance->playState->exit) {
         return AVERROR_EOF;
@@ -12,7 +12,7 @@ int AVContextInterruptCallback(void *context) {
     return 0;
 }
 
-MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, Renderer *render) {
+MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, OldRenderer *render) {
     this->playState = playState;
     this->cb2j = cb2j;
     this->render = render;
@@ -21,7 +21,7 @@ MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, Renderer *re
 }
 
 MediaPlayer::MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url,
-                         Renderer *render,
+                         OldRenderer *render,
                          bool isLiving) {
     this->playState = playState;
     this->cb2j = cb2j;
@@ -293,7 +293,7 @@ void MediaPlayer::initialized() {
         return;
     }
 
-    this->pAVFormatContext->interrupt_callback.callback = AVContextInterruptCallback;
+    this->pAVFormatContext->interrupt_callback.callback = AVContextInterruptCallback1;
     this->pAVFormatContext->interrupt_callback.opaque = this;
 
     for (int i = 0; i < pAVFormatContext->nb_streams; i++) {
@@ -471,7 +471,7 @@ void MediaPlayer::startPlay() {
     }
 }
 
-void MediaPlayer::setRenderer(Renderer *renderer) {
+void MediaPlayer::setRenderer(OldRenderer *renderer) {
     pthread_mutex_lock(&this->mutexInit);
     if (video) {
         video->setRenderer(renderer);

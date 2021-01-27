@@ -7,7 +7,7 @@
 
 #include <queue>
 #include <pthread.h>
-#include "PlayState.h"
+#include "../controller/PlayState.h"
 #include "../util/LogUtil.h"
 
 extern "C" {

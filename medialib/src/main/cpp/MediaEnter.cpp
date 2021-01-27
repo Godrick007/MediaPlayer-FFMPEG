@@ -2,7 +2,8 @@
 #include "util/LogUtil.h"
 #include "Callback2Java.h"
 #include "decode/MediaPlayer.h"
-#include "decode/PlayState.h"
+#include "controller/PlayState.h"
+#include "controller/MediaController.h"
 #include "egl/GLESRenderer.h"
 #include "egl/EGLHelper.h"
 #include <android/native_window_jni.h>
@@ -13,7 +14,8 @@ JavaVM *javaVM = nullptr;
 Callback2Java *pCb2j = nullptr;
 PlayState *pPlayState = nullptr;
 MediaPlayer *pMediaPlayer = nullptr;
-Renderer *pRenderer = nullptr;
+OldRenderer *pRenderer = nullptr;
+MediaController *controller = nullptr;
 
 
 void _setSurface(JNIEnv *env, jobject instance, jobject surface);
@@ -23,6 +25,8 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving);
 void _start(JNIEnv *env, jobject instance);
 
 void _pause(JNIEnv *env, jobject instance);
+
+void _seek(JNIEnv *env, jobject instance, long sec);
 
 void _resume(JNIEnv *env, jobject instance);
 
@@ -40,6 +44,11 @@ void _rendererDrawFrame(JNIEnv *env, jobject instance);
 
 void _eglStart(JNIEnv *env, jobject instance, jobject surface);
 
+void _surfaceCreated(JNIEnv *env, jobject instance, jobject surface);
+
+void _surfaceChanged(JNIEnv *env, jobject instance, jint width, jint height);
+
+void _surfaceDraw(JNIEnv *env, jobject instance);
 
 static const JNINativeMethod methods[] = {
         //renderer
@@ -49,6 +58,7 @@ static const JNINativeMethod methods[] = {
         {"nPrepare",            "(Ljava/lang/String;Z)V",    (void *) _prepare},
         {"nStart",              "()V",                       (void *) _start},
         {"nPause",              "()V",                       (void *) _pause},
+        {"nSeek",               "(J)V",                      (void *) _seek},
         {"nResume",             "()V",                       (void *) _resume},
         {"nStop",               "()V",                       (void *) _stop},
         {"nRelease",            "()V",                       (void *) _release},
@@ -57,6 +67,9 @@ static const JNINativeMethod methods[] = {
         {"nRendererResize",     "(II)V",                     (void *) _rendererResize},
         {"nRendererDrawFrame",  "()V",                       (void *) _rendererDrawFrame},
         {"nEGLStart",           "(Landroid/view/Surface;)V", (void *) _eglStart},
+        {"nSurfaceCreated",     "(Landroid/view/Surface;)V", (void *) _surfaceCreated},
+        {"nSurfaceChanged",     "(II)V",                     (void *) _surfaceChanged},
+        {"nSurfaceDraw",        "()V",                       (void *) _surfaceDraw},
 };
 
 
@@ -89,6 +102,24 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
     const char *_url = env->GetStringUTFChars(url, nullptr);
     LOGE("MediaPlayer", "Open media file %s", _url);
 
+
+    if (!pCb2j) {
+        pCb2j = new Callback2Java(javaVM, env, instance);
+    }
+
+    if (!pPlayState) {
+        pPlayState = new PlayState();
+    }
+
+    if (controller == nullptr) {
+        controller = new MediaController(pPlayState, pCb2j, nullptr, nullptr);
+    }
+
+    controller->prepare(_url);
+
+
+    return;
+
     if (!pCb2j) {
         pCb2j = new Callback2Java(javaVM, env, instance);
     }
@@ -117,29 +148,44 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
 
 void _start(JNIEnv *env, jobject instance) {
 
-    if (pMediaPlayer) {
-        pMediaPlayer->play();
+//    if (pMediaPlayer) {
+//        pMediaPlayer->play();
+//    }
+
+    if (controller) {
+        controller->start();
     }
 
 }
 
 void _pause(JNIEnv *env, jobject instance) {
-    if (pMediaPlayer) {
-        pMediaPlayer->pause();
+//    if (pMediaPlayer) {
+//        pMediaPlayer->pause();
+//    }
+    if (controller) {
+        controller->pause();
     }
 }
 
 void _resume(JNIEnv *env, jobject instance) {
-    if (pMediaPlayer) {
-        pMediaPlayer->resume();
+//    if (pMediaPlayer) {
+//        pMediaPlayer->resume();
+//    }
+    if (controller) {
+        controller->resume();
     }
 }
 
 void _stop(JNIEnv *env, jobject instance) {
-    if (pMediaPlayer) {
-        pMediaPlayer->release();
-        delete pMediaPlayer;
-        pMediaPlayer = nullptr;
+//    if (pMediaPlayer) {
+//        pMediaPlayer->release();
+//        delete pMediaPlayer;
+//        pMediaPlayer = nullptr;
+//    }
+    if (controller) {
+        controller->release();
+        delete controller;
+        controller = nullptr;
     }
     if (pCb2j) {
         delete pCb2j;
@@ -174,6 +220,12 @@ void _setSpeed(JNIEnv *env, jobject instance, jfloat speed) {
     }
 }
 
+void _seek(JNIEnv *env, jobject instance, long sec) {
+    if (controller) {
+        controller->seekTo(sec);
+    }
+}
+
 
 void _rendererInit(JNIEnv *env, jobject instance) {
     if (pRenderer != nullptr) {
@@ -184,7 +236,7 @@ void _rendererInit(JNIEnv *env, jobject instance) {
     if (LOG_DEBUG) {
 //        pRenderer->printGLString("Version", GL_VERSION);
 //        pRenderer->printGLString("Vendor", GL_VENDOR);
-//        pRenderer->printGLString("Renderer", GL_RENDERER);
+//        pRenderer->printGLString("OldRenderer", GL_RENDERER);
 //        pRenderer->printGLString("Extensions", GL_EXTENSIONS);
     }
 
@@ -270,8 +322,39 @@ void _eglStart(JNIEnv *env, jobject instance, jobject surface) {
 
 }
 
+void _surfaceCreated(JNIEnv *env, jobject instance, jobject surface) {
+
+    LOGI("c_tag", "_surfaceCreated ctrl is %d", controller != nullptr);
+
+    if (!pCb2j) {
+        pCb2j = new Callback2Java(javaVM, env, instance);
+    }
+
+    if (!pPlayState) {
+        pPlayState = new PlayState();
+    }
+
+    if (controller == nullptr) {
+        controller = new MediaController(pPlayState, pCb2j, nullptr, nullptr);
+    }
+
+    ANativeWindow *win = ANativeWindow_fromSurface(env, surface);
+    if (controller) {
+        controller->surfaceCreate(win);
+    }
+}
 
 
+void _surfaceChanged(JNIEnv *env, jobject instance, jint width, jint height) {
+    LOGI("c_tag", "_surfaceChanged ctrl is %d", controller != nullptr);
+    if (controller) {
+        controller->surfaceChange(width, height);
+    }
+}
+
+void _surfaceDraw(JNIEnv *env, jobject instance) {
+
+}
 
 
 

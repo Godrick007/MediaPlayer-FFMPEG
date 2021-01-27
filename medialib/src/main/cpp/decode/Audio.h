@@ -6,7 +6,7 @@
 #define MEDIAPLAYER_FFMPEG_AUDIO_H
 
 
-#include "PlayState.h"
+#include "../controller/PlayState.h"
 #include "../Callback2Java.h"
 #include "Queue.h"
 #include "SLProcessor.h"

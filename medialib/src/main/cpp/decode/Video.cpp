@@ -100,7 +100,7 @@ void *threadDecode(void *context) {
 
 //opengles render
 
-            LOGE("clock ", "get clock is %lf", instance->audio->getClock());
+//            LOGE("clock ", "get clock is %lf", instance->audio->getClock());
 
 //            instance->pts = frame->pts * av_q2d(instance->timeBase);
 //            instance->last_updated = av_gettime_relative() / AV_TIME_BASE;
@@ -108,15 +108,31 @@ void *threadDecode(void *context) {
 
 
 
-            if (instance->renderer) {
-                instance->renderer->setYUVData(
+//            if (instance->renderer) {
+//                instance->renderer->setYUVData(
+//                        instance->pAVCodecContext->coded_width,
+//                        instance->pAVCodecContext->coded_height,
+//                        frame->data[0],
+//                        frame->data[1],
+//                        frame->data[2]
+//                );
+//                instance->cb2j->cb2j_MediaPlayer_Request_Render(WORK_THREAD);
+//            }
+
+            if (instance->callbackYUVData != nullptr) {
+
+//                if(!instance->frameVertexFixed){
+//                    instance->frameVertexFixed = true;
+//
+//                }
+
+                instance->callbackYUVData(
                         instance->pAVCodecContext->coded_width,
                         instance->pAVCodecContext->coded_height,
                         frame->data[0],
                         frame->data[1],
                         frame->data[2]
                 );
-                instance->cb2j->cb2j_MediaPlayer_Request_Render(WORK_THREAD);
             }
 
 
@@ -265,7 +281,7 @@ double Video::getDelayTime(double diff) {
     }
 
     if (LOG_DEBUG) {
-        LOGD("MediaPlayer", "delay time is %e", delayTime);
+//        LOGD("MediaPlayer", "delay time is %e", delayTime);
     }
     return delayTime;
 }
@@ -293,12 +309,12 @@ double Video::getFrameDiffTime(AVFrame *frame, AVPacket *pkt) {
 
     double diff = audio->clock - clock;
     if (LOG_DEBUG) {
-        LOGD("MediaPlayer", "diff time is %e", diff);
+//        LOGD("MediaPlayer", "diff time is %e", diff);
     }
     return diff;
 }
 
-void Video::setRenderer(Renderer *renderer) {
+void Video::setRenderer(OldRenderer *renderer) {
     this->renderer = renderer;
     if (renderer != nullptr)
         renderer->setYUVSize(this->pAVCodecContext->coded_width,
@@ -372,6 +388,10 @@ double Video::fixTimeStamp(double current_pts) {
 void Video::dropFrames(double) {
 
 
+}
+
+void Video::setCallback(void (*pCallback)(int, int, void *, void *, void *)) {
+    callbackYUVData = pCallback;
 }
 
 

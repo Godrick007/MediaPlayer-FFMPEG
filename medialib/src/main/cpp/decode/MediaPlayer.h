@@ -8,7 +8,7 @@
 
 #include <sys/types.h>
 #include "../Callback2Java.h"
-#include "PlayState.h"
+#include "../controller/PlayState.h"
 #include "Video.h"
 #include "Audio.h"
 #include "../egl/GLESRenderer.h"
@@ -28,7 +28,7 @@ public:
     pthread_t threadInit;
     PlayState *playState = nullptr;
     AVFormatContext *pAVFormatContext = nullptr;
-    Renderer *render = nullptr;
+    OldRenderer *render = nullptr;
 
 
     pthread_mutex_t mutexInit;
@@ -50,9 +50,9 @@ public:
 
 public:
 
-    MediaPlayer(PlayState *playState, Callback2Java *cb2j, Renderer *render);
+    MediaPlayer(PlayState *playState, Callback2Java *cb2j, OldRenderer *render);
 
-    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url,  Renderer *render,bool isLiving);
+    MediaPlayer(PlayState *playState, Callback2Java *cb2j, const char *url, OldRenderer *render, bool isLiving);
 
     ~MediaPlayer();
 
@@ -93,7 +93,7 @@ public:
 
     void startPlay();
 
-    void setRenderer(Renderer *renderer);
+    void setRenderer(OldRenderer *renderer);
 
 private :
 

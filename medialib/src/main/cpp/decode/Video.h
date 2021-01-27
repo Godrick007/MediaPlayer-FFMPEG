@@ -6,7 +6,7 @@
 #define MEDIAPLAYER_FFMPEG_VIDEO_H
 
 
-#include "PlayState.h"
+#include "../controller/PlayState.h"
 #include "../Callback2Java.h"
 #include "Audio.h"
 #include "Queue.h"
@@ -20,6 +20,7 @@ extern "C" {
 #include "../include/libswscale/swscale.h"
 #include "../include/libavutil/common.h"
 };
+
 
 class Video {
 
@@ -43,15 +44,19 @@ public:
     pthread_mutex_t mutexDecode;
 
     double clock;
-    Renderer *renderer;
+    OldRenderer *renderer;
 
     double pts;
     double last_updated;
 
     SwsContext *pSwsContext = nullptr;
 
+    void (*callbackYUVData)(int, int, void *, void *, void *);
+
 //    FILE *fp_yuv;
 //    const char *output = "/sdcard/output.yuv";
+
+    bool frameVertexFixed = false;
 
 public:
     Video(PlayState *playState, Callback2Java *cb2j);
@@ -67,11 +72,13 @@ public:
 
     void release();
 
-    void setRenderer(Renderer *renderer);
+    void setRenderer(OldRenderer *renderer);
 
     double fixTimeStamp(double current_pts);
 
     void dropFrames(double tar_pts);
+
+    void setCallback(void (*pCallback)(int, int, void *, void *, void *));
 
 };
 

@@ -32,7 +32,7 @@
 
 
 /**
- * @defgroup lavc_codec_hwaccel_vdpau VDPAU Decoder and Renderer
+ * @defgroup lavc_codec_hwaccel_vdpau VDPAU Decoder and OldRenderer
  * @ingroup lavc_codec_hwaccel
  *
  * VDPAU hardware acceleration has two modules

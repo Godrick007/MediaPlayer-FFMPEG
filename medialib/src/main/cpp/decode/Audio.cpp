@@ -393,7 +393,7 @@ void Audio::setVolume(int percent) {
 
 void Audio::setClock(double pts, double last_updated, double serial) {
 
-    LOGI("clock ", "pts is %lf , last_update is %lf", pts, last_updated);
+//    LOGI("clock ", "pts is %lf , last_update is %lf", pts, last_updated);
 
     this->pts = pts;
     this->last_updated = last_updated;

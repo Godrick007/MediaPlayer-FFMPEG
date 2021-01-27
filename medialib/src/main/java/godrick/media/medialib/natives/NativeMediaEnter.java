@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import godrick.media.medialib.itfs.IMediaPlayerListener;
 import godrick.media.medialib.itfs.IRequestRenderListener;
 
 public class NativeMediaEnter {
@@ -27,6 +28,8 @@ public class NativeMediaEnter {
     private static NativeMediaEnter instance;
 
     private IRequestRenderListener iRequestRenderListener;
+
+    private IMediaPlayerListener iMediaPlayerListener;
 
     private NativeMediaEnter() {
     }
@@ -55,6 +58,10 @@ public class NativeMediaEnter {
 
     public void pause() {
         nPause();
+    }
+
+    public void seek(long sec) {
+        nSeek(sec);
     }
 
     public void resume() {
@@ -89,6 +96,18 @@ public class NativeMediaEnter {
         nEGLStart(surface);
     }
 
+    public void onSurfaceCreate(Surface surface) {
+        nSurfaceCreated(surface);
+    }
+
+    public void onSurfaceChanged(int width, int height) {
+        nSurfaceChanged(width, height);
+    }
+
+    public void onSurfaceDraw() {
+        nSurfaceDraw();
+    }
+
     //======================java methods end =================
 
 
@@ -102,6 +121,8 @@ public class NativeMediaEnter {
     private native void nStart();
 
     private native void nPause();
+
+    private native void nSeek(long sec);
 
     private native void nResume();
 
@@ -119,6 +140,12 @@ public class NativeMediaEnter {
 
     private native void nEGLStart(Surface surface);
 
+    private native void nSurfaceCreated(Surface surface);
+
+    private native void nSurfaceChanged(int width, int height);
+
+    private native void nSurfaceDraw();
+
 
     //======================ndk methods end ==================
 
@@ -131,19 +158,29 @@ public class NativeMediaEnter {
 
     public void cb_JniMethodRegisterError() {
         Log.e("MediaPlayer", "cb_JniMethodRegisterError");
+
     }
 
     public void cb_MediaPlayerInitError(int errorCode, String msg) {
         Log.e("MediaPlayer", "cb_MediaPlayerInitError code = " + errorCode + " ------ msg = " + msg);
+        if (iMediaPlayerListener != null) {
+            iMediaPlayerListener.onInitError(errorCode, msg);
+        }
     }
 
     public void cb_MediaPlayerPrepared() {
         Log.e("MediaPlayer", "cb_MediaPlayerPrepared");
 //        nRendererInitialize();
+        if (iMediaPlayerListener != null) {
+            iMediaPlayerListener.onPrepare();
+        }
     }
 
     public void cb_MediaPlayerComplete() {
         Log.e("MediaPlayer", "cb_MediaPlayerComplete");
+        if (iMediaPlayerListener != null) {
+            iMediaPlayerListener.onComplete();
+        }
     }
 
     public void cb_MediaPlayerLoading(boolean isLoading) {
@@ -152,6 +189,9 @@ public class NativeMediaEnter {
 
     public void cb_MediaPlayerProgress(long current, long duration) {
 //        Log.e("MediaPlayer", "cb_MediaPlayerProgress current is " + current + "   duration is " + duration);
+        if (iMediaPlayerListener != null) {
+            iMediaPlayerListener.onProgress(current, duration);
+        }
     }
 
     public void cb_MediaPlayerDBValue(double dbValue) {
@@ -205,5 +245,9 @@ public class NativeMediaEnter {
 
     public void setRequestRenderListener(IRequestRenderListener iRequestRenderListener) {
         this.iRequestRenderListener = iRequestRenderListener;
+    }
+
+    public void setiMediaPlayerListener(IMediaPlayerListener iMediaPlayerListener) {
+        this.iMediaPlayerListener = iMediaPlayerListener;
     }
 }

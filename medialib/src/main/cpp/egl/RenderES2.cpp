@@ -3,6 +3,7 @@
 //
 
 #include "GLESRenderer.h"
+
 #include <EGL/egl.h>
 #include <cstdlib>
 
@@ -54,7 +55,7 @@ static const char FRAGMENT_SHADER_HW[] = "#version 100\n"
                                          "}";
 
 
-class RendererES2 : public Renderer {
+class RendererES2 : public OldRenderer {
 
 public:
     bool initSW();
@@ -66,7 +67,7 @@ private :
 
 };
 
-Renderer *createES2Renderer() {
+OldRenderer *createES2Renderer() {
     RendererES2 *renderer = new RendererES2;
     if (!renderer->initSW()) {
         return nullptr;
@@ -77,22 +78,22 @@ Renderer *createES2Renderer() {
     return renderer;
 }
 
-Renderer::Renderer() : mEglContext(eglGetCurrentContext()) {
+OldRenderer::OldRenderer() : mEglContext(eglGetCurrentContext()) {
     eglUtil = new EGLUtil;
 }
 
-Renderer::~Renderer() {
+OldRenderer::~OldRenderer() {
     if (mEglContext != eglGetCurrentContext()) {
         return;
     }
-    LOGD("OpenGLES2.0", "~Renderer() has called");
+    LOGD("OpenGLES2.0", "OldRendererrer() has called");
     glDeleteProgram(mProgramSW);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0, 0, 0, 1);
 }
 
 
-void Renderer::render() {
+void OldRenderer::render() {
     draw();
 }
 
@@ -131,7 +132,7 @@ bool RendererES2::initSW() {
 ////
 ////    glGenBuffers(1, &mFragmentPositionBuffer);
 ////    glBindBuffer(GL_ARRAY_BUFFER, mFragmentPositionBuffer);
-////    glBufferData(GL_ARRAY_BUFFER, sizeof(textureData), textureData, GL_STATIC_DRAW);
+////    glBufferData(GL_ARRAY_BUFFER, sizeof(textureVertex), textureVertex, GL_STATIC_DRAW);
 
     glGenTextures(3, textureId_yuv);
     for (int i = 0; i < 3; i++) {
@@ -152,7 +153,7 @@ bool RendererES2::initHW() {
 }
 
 
-void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
+void OldRenderer::setYUVData(int width, int height, void *y, void *u, void *v) {
 
 
 //    LOGI("java_count", "set yuv data %ld", count++);
@@ -165,20 +166,20 @@ void Renderer::setYUVData(int width, int height, void *y, void *u, void *v) {
 }
 
 
-void Renderer::resize(int width, int height) {
+void OldRenderer::resize(int width, int height) {
     width_surface = width;
     height_surface = height;
     calcTextureData();
     glViewport(0, 0, width, height);
 }
 
-void Renderer::setYUVSize(int width, int height) {
+void OldRenderer::setYUVSize(int width, int height) {
     width_yuv = width;
     height_yuv = height;
     calcTextureData();
 }
 
-void Renderer::calcTextureData() {
+void OldRenderer::calcTextureData() {
 
 
     if (width_yuv > 0 && height_yuv > 0 && width_surface > 0 && height_surface > 0) {
@@ -250,7 +251,7 @@ void Renderer::calcTextureData() {
 //
 //}
 
-void Renderer::draw() {
+void OldRenderer::draw() {
 
 
     if (width_yuv > 0 && height_yuv > 0 && y != nullptr && v != nullptr && v != nullptr) {

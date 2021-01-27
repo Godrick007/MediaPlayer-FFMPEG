@@ -12,15 +12,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 
-import godrick.media.medialib.itfs.IRequestRenderListener;
-import godrick.media.medialib.natives.NativeMediaEnter;
-import godrick.media.medialib.player.MediaPlayerView;
+import godrick.media.medialib.player.NativeGLSurfaceView;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-    private MediaPlayerView mp;
+    private NativeGLSurfaceView mp;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -32,12 +30,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        mp = findViewById(R.id.video);
 
-        NativeMediaEnter.getInstance().setRequestRenderListener(new IRequestRenderListener() {
-            @Override
-            public void requestRenderer() {
-                mp.requestRender();
-            }
-        });
+//        NativeMediaEnter.getInstance().setRequestRenderListener(new IRequestRenderListener() {
+//            @Override
+//            public void requestRenderer() {
+//                mp.requestRender();
+//            }
+//        });
+
+        mp = findViewById(R.id.video);
 
         Button btnPrepare = findViewById(R.id.btn_prepare);
         Button btnPause = findViewById(R.id.btn_pause);
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //                Log.e("", "");
 
-                mp.setMediaUrl(file.getAbsolutePath(), false);
+                mp.prepare(file.getAbsolutePath());
 
 //                NativeMediaEnter.getInstance().prepare(file.getAbsolutePath(), false);
 //                mp.setRenderer(new GLESRender());
@@ -88,21 +88,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
             case R.id.btn_start:
-                NativeMediaEnter.getInstance().start();
+//                NativeMediaEnter.getInstance().start();
+                mp.start();
                 break;
             case R.id.btn_stop:
-                NativeMediaEnter.getInstance().stop();
+//                NativeMediaEnter.getInstance().stop();
+                mp.stop();
                 break;
             case R.id.btn_speed20:
-                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
+//                NativeMediaEnter.getInstance().setPlaySpeed(2.0f);
 //                NativeMediaEnter.isSupportCodec("");
                 break;
 
             case R.id.btn_pause:
-                NativeMediaEnter.getInstance().pause();
+//                NativeMediaEnter.getInstance().pause();
+                mp.pause();
                 break;
             case R.id.btn_resume:
-                NativeMediaEnter.getInstance().resume();
+//                NativeMediaEnter.getInstance().resume();
+                mp.resume();
                 break;
         }
     }

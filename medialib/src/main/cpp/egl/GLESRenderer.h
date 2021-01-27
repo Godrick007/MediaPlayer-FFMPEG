@@ -12,7 +12,6 @@
 #include <android/surface_texture_jni.h>
 
 
-
 extern "C" {
 #include <stdlib.h>
 };
@@ -44,10 +43,14 @@ const float textureData[] = {
 };
 
 
-class Renderer {
+
+
+class OldRenderer {
 
 public:
-    Renderer();
+    OldRenderer();
+
+
 
     ANativeWindow *window = nullptr;
     int width_yuv;
@@ -71,7 +74,7 @@ public:
 public:
 
 
-    virtual ~Renderer();
+    virtual ~OldRenderer();
 
     void resize(int width, int height);
 
@@ -114,9 +117,9 @@ private:
 
 };
 
-extern Renderer *createES2Renderer();
+extern OldRenderer *createES2Renderer();
 
-extern Renderer *createES3Renderer();
+extern OldRenderer *createES3Renderer();
 
 
 #endif //MEDIAPLAYER_FFMPEG_GLESRENDERER_H

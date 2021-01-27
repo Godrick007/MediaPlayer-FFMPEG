@@ -50,12 +50,16 @@ add_library( # Sets the name of the library.
         src/main/cpp/MediaEnter.cpp
         src/main/cpp/Callback2Java.cpp
 
+        src/main/cpp/controller/MediaController.cpp
+        src/main/cpp/controller/PlayState.cpp
+        src/main/cpp/render/YUVRenderer.cpp
+
         src/main/cpp/util/LogUtil.cpp
         src/main/cpp/util/MediaCodecUtil.cpp
         src/main/cpp/util/EGLUtil.cpp
 
         src/main/cpp/decode/MediaPlayer.cpp
-        src/main/cpp/decode/PlayState.cpp
+
         src/main/cpp/decode/Queue.cpp
         src/main/cpp/decode/Audio.cpp
         src/main/cpp/decode/Video.cpp
@@ -66,6 +70,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/egl/RenderES2.cpp
         src/main/cpp/egl/RenderES3.cpp
         src/main/cpp/egl/EGLHelper.cpp
+        src/main/cpp/egl/GLThread.cpp
 
 
 #        src/main/cpp/ffplay.c
