@@ -40,7 +40,6 @@ public :
     PlayState *playState = nullptr;
     static GLThread *glThread;
     static YUVRenderer *render;
-    EGLHelper *eglHelper = nullptr;
 
     ANativeWindow *surface = nullptr;
     pthread_t threadInit;

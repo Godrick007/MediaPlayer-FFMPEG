@@ -109,5 +109,13 @@ void GLThread::setRenderer(YUVRenderer *renderer) {
     this->renderer = renderer;
 }
 
+GLThread::~GLThread() {
+    exit = true;
+    renderer = nullptr;
+    pthread_join(thread_run, nullptr);
+    eglHelper->destroyEgl();
+    delete eglHelper;
+}
+
 
 

@@ -40,6 +40,7 @@ private:
 public:
 
     GLThread(ANativeWindow *win);
+    ~GLThread();
 
     void start();
 

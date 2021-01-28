@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,6 +39,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        });
 
         mp = findViewById(R.id.video);
+
+        SeekBar sb = findViewById(R.id.sb);
+
+        mp.setSeekBar(sb);
 
         Button btnPrepare = findViewById(R.id.btn_prepare);
         Button btnPause = findViewById(R.id.btn_pause);

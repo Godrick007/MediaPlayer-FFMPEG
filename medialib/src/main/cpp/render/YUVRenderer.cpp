@@ -9,7 +9,11 @@ YUVRenderer::YUVRenderer() : eglContext(eglGetCurrentContext()) {
 }
 
 YUVRenderer::~YUVRenderer() {
-
+    LOGD("OpenGLES2.0", "YUVRenderer() has called");
+    glDeleteProgram(mProgramSW);
+    glDeleteProgram(mProgramHW);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0, 0, 0, 1);
 }
 
 bool YUVRenderer::init() {

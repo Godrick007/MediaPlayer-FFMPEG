@@ -71,7 +71,7 @@ public:
 
     double nowTime;
     double clock;
-    long lastTime;
+    long lastTime = 0;
 
 
     double audio_clock;

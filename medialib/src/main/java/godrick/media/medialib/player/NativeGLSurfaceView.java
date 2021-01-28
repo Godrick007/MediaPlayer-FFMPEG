@@ -1,17 +1,39 @@
 package godrick.media.medialib.player;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.SeekBar;
+
+
+import androidx.annotation.NonNull;
 
 import godrick.media.medialib.itfs.IMediaPlayerListener;
 import godrick.media.medialib.natives.NativeMediaEnter;
 
 public class NativeGLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, IMediaPlayerListener {
 
+    private static long progress;
+
     NativeMediaEnter engine;
+    SeekBar sb;
+
+    long duration;
+
+    Handler handler = new Handler() {
+
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+
+
+        }
+    };
 
 
     public NativeGLSurfaceView(Context context) {
@@ -110,6 +132,40 @@ public class NativeGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     @Override
     public void onProgress(long current, long duration) {
+        Log.e("_tag", String.format("current is %d, duration is %d", current, duration));
+        Message m = Message.obtain();
+        this.duration = duration;
+        int c = (int) (current * 1000000 / duration);
+        m.arg1 = c;
+        m.what = 10086;
+        Log.e("_tag", String.format("current is %d, duration is %d, c is %d", current, duration,c));
+        handler.sendMessage(m);
 
+        sb.setProgress(m.arg1);
+
+    }
+
+    public void setSeekBar(SeekBar sb) {
+        this.sb = sb;
+        this.sb.setMax(1000000);
+        this.sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                long p = seekBar.getProgress() * duration / 1000000;
+                if (engine != null) {
+                    engine.seek(p);
+                }
+            }
+        });
     }
 }

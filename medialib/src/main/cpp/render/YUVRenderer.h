@@ -92,6 +92,8 @@ public:
     GLuint sampler_v;
     GLuint textureId_yuv[3];
 
+    GLuint mProgramHW;
+
 
 public:
     YUVRenderer();

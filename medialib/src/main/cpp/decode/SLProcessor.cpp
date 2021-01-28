@@ -23,6 +23,9 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf queueItf, void *context) {
                                                                  instance->audio->clock,
                                                                  instance->audio->duration);
             }
+
+
+
 //            instance->audio->cb2j->cb2j_MediaPlayer_DBValue(WORK_THREAD,
 //                                                            instance->getPCMDB(
 //                                                                    /*reinterpret_cast<char *>(instance->pSoundTouchBuffer),*/

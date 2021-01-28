@@ -364,7 +364,7 @@ void MediaController::seekTo(long second) {
         return;
     }
 
-    if (second < 0 || second * 1000 > duration) {
+    if (second < 0 || second > duration) {
         return;
     }
 
@@ -400,6 +400,60 @@ void MediaController::seekTo(long second) {
 
 void MediaController::release() {
 
+    int exit = 1;
+
+    playState->exit = true;
+
+    pthread_join(threadDemuxer, nullptr);
+
+    pthread_mutex_lock(&mutexInit);
+
+    int sleepCount = 0;
+
+    while (exit) {
+
+        if (sleepCount > 1000) {
+            exit = 0;
+        }
+        sleepCount++;
+        av_usleep(PlayState::THRESHOLD_SLEEP_10);
+    }
+
+    if (audio != nullptr) {
+        delete audio;
+        audio = nullptr;
+    }
+
+    if (video != nullptr) {
+        delete video;
+        video = nullptr;
+    }
+
+    if (pAVFormatContextInput != nullptr) {
+        avformat_close_input(&pAVFormatContextInput);
+        avformat_free_context(pAVFormatContextInput);
+        pAVFormatContextInput = nullptr;
+    }
+
+    if (glThread != nullptr) {
+        delete glThread;
+        glThread = nullptr;
+    }
+
+    if (render != nullptr) {
+        delete render;
+        render = nullptr;
+    }
+
+    if (playState != nullptr) {
+        playState = nullptr;
+    }
+
+    if (cb2j != nullptr) {
+        cb2j = nullptr;
+    }
+
+    pthread_mutex_unlock(&mutexInit);
 }
 
 MediaController::~MediaController() {
