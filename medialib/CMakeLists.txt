@@ -64,6 +64,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/decode/Audio.cpp
         src/main/cpp/decode/Video.cpp
         src/main/cpp/decode/SLProcessor.cpp
+        src/main/cpp/decode/HWDecoder.cpp
 
         #        src/main/cpp/egl/gl3stub.h
         #        src/main/cpp/egl/gl3stub.c
@@ -196,7 +197,7 @@ target_link_libraries( # Specifies the target library.
         swscale-5
         x264
 
-        #        mediandk
+        mediandk
         android
         # Links the target library to the log library
         # included in the NDK.
