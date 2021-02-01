@@ -20,7 +20,7 @@ MediaController *controller = nullptr;
 
 void _setSurface(JNIEnv *env, jobject instance, jobject surface);
 
-void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving);
+void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving, jobjectArray mimes);
 
 void _start(JNIEnv *env, jobject instance);
 
@@ -52,24 +52,24 @@ void _surfaceDraw(JNIEnv *env, jobject instance);
 
 static const JNINativeMethod methods[] = {
         //renderer
-        {"nSetSurface",         "(Landroid/view/Surface;)V", (void *) _setSurface},
+        {"nSetSurface",         "(Landroid/view/Surface;)V",                 (void *) _setSurface},
 
         //media player controller
-        {"nPrepare",            "(Ljava/lang/String;Z)V",    (void *) _prepare},
-        {"nStart",              "()V",                       (void *) _start},
-        {"nPause",              "()V",                       (void *) _pause},
-        {"nSeek",               "(J)V",                      (void *) _seek},
-        {"nResume",             "()V",                       (void *) _resume},
-        {"nStop",               "()V",                       (void *) _stop},
-        {"nRelease",            "()V",                       (void *) _release},
-        {"nSetPlaySpeed",       "(F)V",                      (void *) _setSpeed},
-        {"nRendererInitialize", "()V",                       (void *) _rendererInit},
-        {"nRendererResize",     "(II)V",                     (void *) _rendererResize},
-        {"nRendererDrawFrame",  "()V",                       (void *) _rendererDrawFrame},
-        {"nEGLStart",           "(Landroid/view/Surface;)V", (void *) _eglStart},
-        {"nSurfaceCreated",     "(Landroid/view/Surface;)V", (void *) _surfaceCreated},
-        {"nSurfaceChanged",     "(II)V",                     (void *) _surfaceChanged},
-        {"nSurfaceDraw",        "()V",                       (void *) _surfaceDraw},
+        {"nPrepare",            "(Ljava/lang/String;Z[Ljava/lang/String;)V", (void *) _prepare},
+        {"nStart",              "()V",                                       (void *) _start},
+        {"nPause",              "()V",                                       (void *) _pause},
+        {"nSeek",               "(J)V",                                      (void *) _seek},
+        {"nResume",             "()V",                                       (void *) _resume},
+        {"nStop",               "()V",                                       (void *) _stop},
+        {"nRelease",            "()V",                                       (void *) _release},
+        {"nSetPlaySpeed",       "(F)V",                                      (void *) _setSpeed},
+        {"nRendererInitialize", "()V",                                       (void *) _rendererInit},
+        {"nRendererResize",     "(II)V",                                     (void *) _rendererResize},
+        {"nRendererDrawFrame",  "()V",                                       (void *) _rendererDrawFrame},
+        {"nEGLStart",           "(Landroid/view/Surface;)V",                 (void *) _eglStart},
+        {"nSurfaceCreated",     "(Landroid/view/Surface;)V",                 (void *) _surfaceCreated},
+        {"nSurfaceChanged",     "(II)V",                                     (void *) _surfaceChanged},
+        {"nSurfaceDraw",        "()V",                                       (void *) _surfaceDraw},
 };
 
 
@@ -98,9 +98,20 @@ void _setSurface(JNIEnv *env, jobject instance, jobject surface) {
 
 }
 
-void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving) {
+void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving, jobjectArray mimes) {
     const char *_url = env->GetStringUTFChars(url, nullptr);
     LOGE("MediaPlayer", "Open media file %s", _url);
+
+    bool hwSupport = false;
+
+    for (int i = 0; i < env->GetArrayLength(mimes); i++) {
+
+        jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(mimes, i));
+        std::string str = env->GetStringUTFChars(jstr, nullptr);
+        if (str.find("video/")) {
+            hwSupport = true;
+        }
+    }
 
 
     if (!pCb2j) {

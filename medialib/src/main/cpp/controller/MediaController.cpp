@@ -228,7 +228,7 @@ void MediaController::initVideo(int streamIndex) {
     this->video->streamIndex = streamIndex;
     this->video->timeBase = pAVFormatContextInput->streams[streamIndex]->time_base;
     this->video->pAVCodecParameters = pAVFormatContextInput->streams[streamIndex]->codecpar;
-    this->video->setCallback(this->callbackYUVData);
+    this->video->setCallbackYUV(this->callbackYUVData);
     int num = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.num;
     int den = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.den;
     if (num != 0 && den != 0) {
@@ -458,6 +458,12 @@ void MediaController::release() {
 
 MediaController::~MediaController() {
 
+}
+
+void MediaController::setHWSupport(bool s) {
+    this->HWSupport = s;
+    pthread_join(threadInit, nullptr);
+    video.
 }
 
 

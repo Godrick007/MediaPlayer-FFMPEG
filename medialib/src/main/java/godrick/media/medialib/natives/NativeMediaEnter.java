@@ -48,8 +48,8 @@ public class NativeMediaEnter {
         nSetSurface(surface);
     }
 
-    public void prepare(String url, boolean isLiving) {
-        nPrepare(url, isLiving);
+    public void prepare(String url, boolean isLiving,String[] mimes) {
+        nPrepare(url, isLiving,mimes);
     }
 
     public void start() {
@@ -116,7 +116,7 @@ public class NativeMediaEnter {
 
     private native void nSetSurface(Surface surface);
 
-    private native void nPrepare(String url, boolean isLiving);
+    private native void nPrepare(String url, boolean isLiving,String[] mimes);
 
     private native void nStart();
 

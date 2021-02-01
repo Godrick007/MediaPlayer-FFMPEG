@@ -13,7 +13,7 @@ public class MediaUtil {
 
     public static String[] getMediaCodecSupport(String url) {
 
-        String[] arr = new String[1024];
+        String[] arr = new String[8];
 
         MediaExtractor extractor = new MediaExtractor();
 

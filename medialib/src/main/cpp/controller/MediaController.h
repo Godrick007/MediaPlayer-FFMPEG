@@ -51,6 +51,9 @@ public :
 
     RenderMode renderMode = RENDERMODE_CONTINUOUSLY;
 
+    bool HWSupport = false;
+
+
 public:
     MediaController(PlayState *ps, Callback2Java *cj, Audio *a, Video *v);
 
@@ -63,6 +66,8 @@ public:
     void initSubtitle(int streamIndex);
 
     int getAVCodecContext(AVCodecParameters *param, AVCodecContext **codecContext);
+
+    void setHWSupport(bool s);
 
 public://surface - egl - lifecycle stuff
 

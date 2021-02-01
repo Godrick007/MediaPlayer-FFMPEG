@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 
 import godrick.media.medialib.itfs.IMediaPlayerListener;
 import godrick.media.medialib.natives.NativeMediaEnter;
+import godrick.media.medialib.utils.MediaUtil;
 
 public class NativeGLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, IMediaPlayerListener {
 
@@ -80,8 +81,11 @@ public class NativeGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void prepare(String url) {
+
+        String[] mimes = MediaUtil.getMediaCodecSupport(url);
+
         if (engine != null) {
-            engine.prepare(url, false);
+            engine.prepare(url, false, mimes);
         }
     }
 
@@ -138,7 +142,7 @@ public class NativeGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         int c = (int) (current * 1000000 / duration);
         m.arg1 = c;
         m.what = 10086;
-        Log.e("_tag", String.format("current is %d, duration is %d, c is %d", current, duration,c));
+        Log.e("_tag", String.format("current is %d, duration is %d, c is %d", current, duration, c));
         handler.sendMessage(m);
 
         sb.setProgress(m.arg1);

@@ -53,6 +53,10 @@ public:
 
     void (*callbackYUVData)(int, int, void *, void *, void *);
 
+    void (*callbackHWCodec)(void *, int);
+
+    bool HWSupport = false;
+
 //    FILE *fp_yuv;
 //    const char *output = "/sdcard/output.yuv";
 
@@ -78,7 +82,11 @@ public:
 
     void dropFrames(double tar_pts);
 
-    void setCallback(void (*pCallback)(int, int, void *, void *, void *));
+    void setCallbackYUV(void (*pCallback)(int, int, void *, void *, void *));
+
+    void setCallbackHW(void (*pCallback)(void *, int));
+
+    void setHWSupport(bool s);
 
 };
 

@@ -390,8 +390,20 @@ void Video::dropFrames(double) {
 
 }
 
-void Video::setCallback(void (*pCallback)(int, int, void *, void *, void *)) {
+void Video::setCallbackYUV(void (*pCallback)(int, int, void *, void *, void *)) {
     callbackYUVData = pCallback;
 }
+
+void Video::setCallbackHW(void (*pCallback)(void *, int)) {
+    callbackHWCodec = pCallback;
+}
+
+void Video::setHWSupport(bool s) {
+    HWSupport = s;
+}
+
+
+
+
 
 
