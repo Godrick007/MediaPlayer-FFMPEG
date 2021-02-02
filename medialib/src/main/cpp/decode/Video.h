@@ -38,6 +38,10 @@ public:
     AVCodecParameters *pAVCodecParameters = nullptr;
     AVCodecContext *pAVCodecContext = nullptr;
 
+    AVBSFContext *pAVBSFContext = nullptr;
+    AVBitStreamFilter *pBsFilter = nullptr;
+
+
     Queue *queue = nullptr;
 
     pthread_t threadPlay;

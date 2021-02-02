@@ -104,12 +104,16 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving, job
 
     bool hwSupport = false;
 
+    char *m = nullptr;
+
     for (int i = 0; i < env->GetArrayLength(mimes); i++) {
 
         jstring jstr = static_cast<jstring>(env->GetObjectArrayElement(mimes, i));
         std::string str = env->GetStringUTFChars(jstr, nullptr);
         if (str.find("video/")) {
+            m = const_cast<char *>(str.c_str());
             hwSupport = true;
+            break;
         }
     }
 
@@ -126,7 +130,9 @@ void _prepare(JNIEnv *env, jobject instance, jstring url, jboolean isLiving, job
         controller = new MediaController(pPlayState, pCb2j, nullptr, nullptr);
     }
 
-    controller->prepare(_url);
+    controller->mimeType = m;
+
+    controller->prepare(_url, hwSupport);
 
 
     return;

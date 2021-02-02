@@ -12,6 +12,7 @@
 #include "../egl/EGLHelper.h"
 #include "../render/YUVRenderer.h"
 #include "PlayState.h"
+#include "../decode/HWDecoder.h"
 
 #include <android/native_window.h>
 #include <pthread.h>
@@ -34,6 +35,7 @@ public :
     long duration = 0;
 
     const char *url = nullptr;
+    const char *mimeType = nullptr;
     Audio *audio = nullptr;
     Video *video = nullptr;
     Callback2Java *cb2j = nullptr;
@@ -52,6 +54,8 @@ public :
     RenderMode renderMode = RENDERMODE_CONTINUOUSLY;
 
     bool HWSupport = false;
+
+    HWDecoder *decoder = nullptr;
 
 
 public:
@@ -82,7 +86,7 @@ public://surface - egl - lifecycle stuff
 
 public://media control stuff
 
-    void prepare(const char *url);
+    void prepare(const char *url, bool supportHW);
 
     void start();
 
@@ -105,6 +109,8 @@ public://thread callbacks
 private://decode stuff
 
     static void callbackYUVData(int width, int height, void *y, void *u, void *v);
+
+    static void callbackHWData(void *data, int size);
 
 };
 

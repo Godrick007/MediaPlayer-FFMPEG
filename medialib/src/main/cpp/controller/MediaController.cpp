@@ -40,8 +40,9 @@ MediaController::MediaController(PlayState *ps, Callback2Java *cj, Audio *a, Vid
 
 }
 
-void MediaController::prepare(const char *url) {
+void MediaController::prepare(const char *url, bool supportHW) {
     this->url = url;
+    this->HWSupport = supportHW;
     pthread_create(&threadInit, nullptr, threadCallbackInit, this);
 }
 
@@ -112,6 +113,21 @@ void MediaController::threadCallbackMediaInitialize() {
 //        this->video->setRenderer(this->render);
         this->render->setYUVSize(video->pAVCodecContext->coded_width,
                                  video->pAVCodecContext->coded_height);
+
+        if (this->decoder == nullptr) {
+            decoder = new HWDecoder();
+        }
+
+        decoder->init(mimeType,
+                      video->pAVCodecContext->coded_width,
+                      video->pAVCodecContext->coded_height,
+                      video->pAVCodecContext->extradata,
+                      video->pAVCodecContext->extradata,
+                      video->pAVCodecContext->extradata_size,
+                      video->pAVCodecContext->extradata_size,
+                      surface
+        );
+
     }
 
     if (playState && !playState->exit) {
@@ -229,6 +245,13 @@ void MediaController::initVideo(int streamIndex) {
     this->video->timeBase = pAVFormatContextInput->streams[streamIndex]->time_base;
     this->video->pAVCodecParameters = pAVFormatContextInput->streams[streamIndex]->codecpar;
     this->video->setCallbackYUV(this->callbackYUVData);
+    this->video->setCallbackHW(this->callbackHWData);
+    this->video->setHWSupport(HWSupport);
+
+    av_bsf_alloc(video->pBsFilter, &video->pAVBSFContext);
+
+//    this->video->pBsFilter = av_bsf_get_by_name(pAVFormatContextInput->streams[streamIndex]->codecpar->codec_id);
+
     int num = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.num;
     int den = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.den;
     if (num != 0 && den != 0) {
@@ -463,7 +486,14 @@ MediaController::~MediaController() {
 void MediaController::setHWSupport(bool s) {
     this->HWSupport = s;
     pthread_join(threadInit, nullptr);
-    video.
+    if (video != nullptr) {
+        video->HWSupport = true;
+        video->setCallbackHW(callbackHWData);
+    }
+}
+
+void MediaController::callbackHWData(void *data, int size) {
+
 }
 
 

@@ -44,7 +44,7 @@ public class MediaPlayerView extends GLSurfaceView {
 
 
         } else {                //sw
-            NativeMediaEnter.getInstance().prepare(url, isLiving);
+//            NativeMediaEnter.getInstance().prepare(url, isLiving);
         }
 
 

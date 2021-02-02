@@ -49,6 +49,16 @@ bool YUVRenderer::initSW() {
 }
 
 bool YUVRenderer::initHW() {
+
+    if(eglUtil == nullptr){
+        return false;
+    }
+
+    mProgramHW = eglUtil->createProgram(VERTEX_SHADER,FRAGMENT_SHADER_HW);
+
+
+
+
     return true;
 }
 

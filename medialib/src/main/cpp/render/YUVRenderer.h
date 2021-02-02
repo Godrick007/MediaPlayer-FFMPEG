@@ -93,6 +93,11 @@ public:
     GLuint textureId_yuv[3];
 
     GLuint mProgramHW;
+    GLuint av_PositionHW;
+    GLuint af_PositionHW;
+    GLuint samplerCodec;
+    GLuint textureCodec;
+
 
 
 public:
