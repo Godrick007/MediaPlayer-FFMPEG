@@ -39,7 +39,7 @@ public:
     AVCodecContext *pAVCodecContext = nullptr;
 
     AVBSFContext *pAVBSFContext = nullptr;
-    AVBitStreamFilter *pBsFilter = nullptr;
+    const AVBitStreamFilter *pBsFilter = nullptr;
 
 
     Queue *queue = nullptr;

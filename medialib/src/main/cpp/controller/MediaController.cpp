@@ -118,7 +118,7 @@ void MediaController::threadCallbackMediaInitialize() {
             decoder = new HWDecoder();
         }
 
-        decoder->init(mimeType,
+        decoder->init(mimeType.c_str(),
                       video->pAVCodecContext->coded_width,
                       video->pAVCodecContext->coded_height,
                       video->pAVCodecContext->extradata,
@@ -248,15 +248,40 @@ void MediaController::initVideo(int streamIndex) {
     this->video->setCallbackHW(this->callbackHWData);
     this->video->setHWSupport(HWSupport);
 
-    av_bsf_alloc(video->pBsFilter, &video->pAVBSFContext);
-
-//    this->video->pBsFilter = av_bsf_get_by_name(pAVFormatContextInput->streams[streamIndex]->codecpar->codec_id);
 
     int num = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.num;
     int den = pAVFormatContextInput->streams[streamIndex]->avg_frame_rate.den;
     if (num != 0 && den != 0) {
         int fps = num / den;
         video->defaultDelayTime = 1.0f / fps;
+    }
+
+    const char *filterName = nullptr;
+    if (video->pAVCodecParameters->codec_id == AV_CODEC_ID_H264) {
+        filterName = "h264_mp4toannexb";
+    } else if (video->pAVCodecParameters->codec_id == AV_CODEC_ID_HEVC) {
+        filterName = "hevc_mp4toannexb";
+    }
+
+    if (filterName != nullptr) {
+        video->pBsFilter = av_bsf_get_by_name(filterName);
+    }
+
+    if (video->pBsFilter != nullptr) {
+        if (av_bsf_alloc(video->pBsFilter, &video->pAVBSFContext) != 0) {
+            av_bsf_free(&video->pAVBSFContext);
+            return;
+        }
+        if (avcodec_parameters_copy(video->pAVBSFContext->par_in, video->pAVCodecParameters) < 0) {
+            av_bsf_free(&video->pAVBSFContext);
+            return;
+        }
+
+        if (av_bsf_init(video->pAVBSFContext) != 0) {
+            av_bsf_free(&video->pAVBSFContext);
+            return;
+        }
+        video->pAVBSFContext->time_base_in = video->timeBase;
     }
 
 }
@@ -494,6 +519,11 @@ void MediaController::setHWSupport(bool s) {
 
 void MediaController::callbackHWData(void *data, int size) {
 
+}
+
+void MediaController::setMimeType(string type) {
+    mimeType = type;
+    int i = 1;
 }
 
 

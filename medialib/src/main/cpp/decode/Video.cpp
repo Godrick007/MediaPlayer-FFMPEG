@@ -75,8 +75,6 @@ void *threadDecode(void *context) {
 
         if (instance->HWSupport) {
 
-            int diff = instance->getFrameDiffTime(nullptr, pkt);
-            av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
 
             if (instance->callbackHWCodec != nullptr) {
 
@@ -84,8 +82,21 @@ void *threadDecode(void *context) {
 //                    instance->frameVertexFixed = true;
 //
 //                }
+                if (av_bsf_send_packet(instance->pAVBSFContext, pkt) != 0) {
+                    freeAVPacket(&pkt);
+                    pthread_mutex_unlock(&instance->mutexDecode);
+                    continue;
+                }
 
-                instance->callbackHWCodec(pkt->data, pkt->size);
+                while (av_bsf_receive_packet(instance->pAVBSFContext, pkt) == 0) {
+
+                    int diff = instance->getFrameDiffTime(nullptr, pkt);
+                    av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
+
+                    instance->callbackHWCodec(pkt->data, pkt->size);
+                }
+
+
             }
 
         } else {
@@ -110,6 +121,17 @@ void *threadDecode(void *context) {
 
                 int diff = instance->getFrameDiffTime(frame, nullptr);
                 av_usleep(instance->getDelayTime(diff) * AV_TIME_BASE);
+
+                if (instance->callbackYUVData != nullptr) {
+
+                    instance->callbackYUVData(
+                            instance->pAVCodecContext->coded_width,
+                            instance->pAVCodecContext->coded_height,
+                            frame->data[0],
+                            frame->data[1],
+                            frame->data[2]
+                    );
+                }
 
 
 //            double delay = instance->fixTimeStamp(frame->pts);
@@ -140,21 +162,7 @@ void *threadDecode(void *context) {
 //                instance->cb2j->cb2j_MediaPlayer_Request_Render(WORK_THREAD);
 //            }
 
-                if (instance->callbackYUVData != nullptr) {
 
-//                if(!instance->frameVertexFixed){
-//                    instance->frameVertexFixed = true;
-//
-//                }
-
-                    instance->callbackYUVData(
-                            instance->pAVCodecContext->coded_width,
-                            instance->pAVCodecContext->coded_height,
-                            frame->data[0],
-                            frame->data[1],
-                            frame->data[2]
-                    );
-                }
 
 
             } else {

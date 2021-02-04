@@ -13,15 +13,19 @@
 #include "../render/YUVRenderer.h"
 #include "PlayState.h"
 #include "../decode/HWDecoder.h"
+#include <string>
 
 #include <android/native_window.h>
 #include <pthread.h>
+
 
 extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/time.h"
 #include "libavutil/error.h"
 };
+
+using namespace std;
 
 enum RenderType {
     RENDER_WHEN_DIRTY,
@@ -35,7 +39,7 @@ public :
     long duration = 0;
 
     const char *url = nullptr;
-    const char *mimeType = nullptr;
+    string mimeType;
     Audio *audio = nullptr;
     Video *video = nullptr;
     Callback2Java *cb2j = nullptr;
@@ -70,6 +74,8 @@ public:
     void initSubtitle(int streamIndex);
 
     int getAVCodecContext(AVCodecParameters *param, AVCodecContext **codecContext);
+
+    void setMimeType(string type);
 
     void setHWSupport(bool s);
 
